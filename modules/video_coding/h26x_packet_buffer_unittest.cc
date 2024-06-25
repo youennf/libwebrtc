@@ -1044,22 +1044,70 @@ TEST(H26xPacketBufferTest, FullPacketBufferDoesNotBlockKeyframe) {
               SizeIs(1));
 }
 
-TEST(H26xPacketBufferTest, TooManyNalusInPacket) {
+TEST(H26xPacketBufferTest, AssembleFrameAfterReordering) {
   H26xPacketBuffer packet_buffer(/*h264_allow_idr_only_keyframes=*/false);
 
-  std::unique_ptr<H26xPacketBuffer::Packet> packet(H264Packet(kH264StapA)
-                                                       .Sps()
-                                                       .Pps()
-                                                       .Idr()
-                                                       .SeqNum(1)
-                                                       .Time(1)
-                                                       .Marker()
-                                                       .Build());
-  auto& h264_header =
-      absl::get<RTPVideoHeaderH264>(packet->video_header.video_type_header);
-  h264_header.nalus_length = kMaxNalusPerPacket + 1;
+  EXPECT_THAT(packet_buffer
+                  .InsertPacket(H264Packet(kH264StapA)
+                                    .Sps()
+                                    .Pps()
+                                    .Idr()
+                                    .SeqNum(2)
+                                    .Time(2)
+                                    .Marker()
+                                    .Build())
+                  .packets,
+              SizeIs(1));
 
-  EXPECT_THAT(packet_buffer.InsertPacket(std::move(packet)).packets, IsEmpty());
+  EXPECT_THAT(packet_buffer
+                  .InsertPacket(H264Packet(kH264SingleNalu)
+                                    .Slice()
+                                    .SeqNum(1)
+                                    .Time(1)
+                                    .Marker()
+                                    .Build())
+                  .packets,
+              IsEmpty());
+
+  EXPECT_THAT(packet_buffer
+                  .InsertPacket(H264Packet(kH264StapA)
+                                    .Sps()
+                                    .Pps()
+                                    .Idr()
+                                    .SeqNum(0)
+                                    .Time(0)
+                                    .Marker()
+                                    .Build())
+                  .packets,
+              SizeIs(2));
+}
+
+TEST(H26xPacketBufferTest, AssembleFrameAfterLoss) {
+  H26xPacketBuffer packet_buffer(/*h264_allow_idr_only_keyframes=*/false);
+
+  EXPECT_THAT(packet_buffer
+                  .InsertPacket(H264Packet(kH264StapA)
+                                    .Sps()
+                                    .Pps()
+                                    .Idr()
+                                    .SeqNum(0)
+                                    .Time(0)
+                                    .Marker()
+                                    .Build())
+                  .packets,
+              SizeIs(1));
+
+  EXPECT_THAT(packet_buffer
+                  .InsertPacket(H264Packet(kH264StapA)
+                                    .Sps()
+                                    .Pps()
+                                    .Idr()
+                                    .SeqNum(2)
+                                    .Time(2)
+                                    .Marker()
+                                    .Build())
+                  .packets,
+              SizeIs(1));
 }
 
 #ifdef RTC_ENABLE_H265
