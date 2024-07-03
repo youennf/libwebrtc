@@ -10,9 +10,8 @@
 
 #import "RTCDispatcher.h"
 
-@interface RTC_OBJC_TYPE (RTCDispatcher)
-()
+@interface RTCDispatcher ()
 
-    + (dispatch_queue_t)dispatchQueueForType : (RTCDispatcherQueueType)dispatchType;
++ (dispatch_queue_t)dispatchQueueForType:(RTCDispatcherQueueType)dispatchType;
 
 @end

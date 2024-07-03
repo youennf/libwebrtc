@@ -13,6 +13,7 @@
 #import <objc/runtime.h>
 
 #include "rtc_base/numerics/safe_conversions.h"
+#include "api/make_ref_counted.h"
 
 namespace {
 // An implementation of EncodedImageBufferInterface that doesn't perform any copies.
@@ -38,6 +39,7 @@ class ObjCEncodedImageBuffer : public webrtc::EncodedImageBufferInterface {
 
 // A simple wrapper around webrtc::EncodedImageBufferInterface to make it usable with associated
 // objects.
+__attribute__((objc_runtime_name("WK_RTCWrappedEncodedImageBuffer")))
 @interface RTCWrappedEncodedImageBuffer : NSObject
 @property(nonatomic) rtc::scoped_refptr<webrtc::EncodedImageBufferInterface> buffer;
 - (instancetype)initWithEncodedImageBuffer:
@@ -55,10 +57,9 @@ class ObjCEncodedImageBuffer : public webrtc::EncodedImageBufferInterface {
 }
 @end
 
-@implementation RTC_OBJC_TYPE (RTCEncodedImage)
-(Private)
+@implementation RTCEncodedImage (Private)
 
-    - (rtc::scoped_refptr<webrtc::EncodedImageBufferInterface>)encodedData {
+- (rtc::scoped_refptr<webrtc::EncodedImageBufferInterface>)encodedData {
   RTCWrappedEncodedImageBuffer *wrappedBuffer =
       objc_getAssociatedObject(self, @selector(encodedData));
   return wrappedBuffer.buffer;
@@ -79,7 +80,7 @@ class ObjCEncodedImageBuffer : public webrtc::EncodedImageBufferInterface {
     self.encodedData = encodedImage.GetEncodedData();
     // Wrap the buffer in NSData without copying, do not take ownership.
     self.buffer = [NSData dataWithBytesNoCopy:self.encodedData->data()
-                                       length:encodedImage.size()
+                                       length:self.encodedData->size()
                                  freeWhenDone:NO];
     self.encodedWidth = rtc::dchecked_cast<int32_t>(encodedImage._encodedWidth);
     self.encodedHeight = rtc::dchecked_cast<int32_t>(encodedImage._encodedHeight);

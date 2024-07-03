@@ -10,7 +10,7 @@
 
 #import "RTCVideoEncoderQpThresholds.h"
 
-@implementation RTC_OBJC_TYPE (RTCVideoEncoderQpThresholds)
+@implementation RTCVideoEncoderQpThresholds
 
 @synthesize low = _low;
 @synthesize high = _high;

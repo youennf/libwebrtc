@@ -12,28 +12,20 @@
 #import <Foundation/Foundation.h>
 
 #import "RTCMacros.h"
-#import "RTCNativeVideoDecoder.h"
-#import "RTCNativeVideoDecoderBuilder+Native.h"
 #import "RTCVideoDecoderAV1.h"
+#import "RTCWrappedNativeVideoDecoder.h"
 
-#include "modules/video_coding/codecs/av1/dav1d_decoder.h"
+#include "modules/video_coding/codecs/av1/libaom_av1_decoder.h"
 
-@interface RTC_OBJC_TYPE (RTCVideoDecoderAV1Builder)
-    : RTC_OBJC_TYPE(RTCNativeVideoDecoder) <RTC_OBJC_TYPE (RTCNativeVideoDecoderBuilder)>
+@implementation RTCVideoDecoderAV1
+
++ (id<RTCVideoDecoder>)av1Decoder {
+  std::unique_ptr<webrtc::VideoDecoder> nativeDecoder(webrtc::CreateLibaomAv1Decoder());
+  if (nativeDecoder == nullptr) {
+    return nil;
+  }
+  return [[RTCWrappedNativeVideoDecoder alloc]
+      initWithNativeDecoder:std::move(nativeDecoder)];
+}
+
 @end
-
-    @implementation RTC_OBJC_TYPE (RTCVideoDecoderAV1Builder)
-
-    - (std::unique_ptr<webrtc::VideoDecoder>)build:(const webrtc::Environment&)env {
-      return webrtc::CreateDav1dDecoder();
-    }
-
-    @end
-
-    @implementation RTC_OBJC_TYPE (RTCVideoDecoderAV1)
-
-    + (id<RTC_OBJC_TYPE(RTCVideoDecoder)>)av1Decoder {
-      return [[RTC_OBJC_TYPE(RTCVideoDecoderAV1Builder) alloc] init];
-    }
-
-    @end

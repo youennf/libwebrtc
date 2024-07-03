@@ -14,7 +14,7 @@
 
 namespace webrtc {
 
-RTC_OBJC_TYPE(RTCVideoFrame) * NativeToObjCVideoFrame(const VideoFrame& frame) {
+RTCVideoFrame* NativeToObjCVideoFrame(const VideoFrame& frame) {
   return ToObjCVideoFrame(frame);
 }
 

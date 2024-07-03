@@ -9,7 +9,6 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <XCTest/XCTest.h>
 
 #include <vector>
 
@@ -23,45 +22,45 @@
 #import "api/peerconnection/RTCPeerConnectionFactory.h"
 #import "helpers/NSString+StdString.h"
 
-@interface RTCCertificateTest : XCTestCase
+@interface RTCCertificateTest : NSObject
+- (void)testCertificateIsUsedInConfig;
 @end
 
 @implementation RTCCertificateTest
 
 - (void)testCertificateIsUsedInConfig {
-  RTC_OBJC_TYPE(RTCConfiguration) *originalConfig = [[RTC_OBJC_TYPE(RTCConfiguration) alloc] init];
+  RTCConfiguration *originalConfig = [[RTCConfiguration alloc] init];
 
   NSArray *urlStrings = @[ @"stun:stun1.example.net" ];
-  RTC_OBJC_TYPE(RTCIceServer) *server =
-      [[RTC_OBJC_TYPE(RTCIceServer) alloc] initWithURLStrings:urlStrings];
+  RTCIceServer *server = [[RTCIceServer alloc] initWithURLStrings:urlStrings];
   originalConfig.iceServers = @[ server ];
 
   // Generate a new certificate.
-  RTC_OBJC_TYPE(RTCCertificate) *originalCertificate = [RTC_OBJC_TYPE(RTCCertificate)
-      generateCertificateWithParams:@{@"expires" : @100000, @"name" : @"RSASSA-PKCS1-v1_5"}];
+  RTCCertificate *originalCertificate = [RTCCertificate generateCertificateWithParams:@{
+    @"expires" : @100000,
+    @"name" : @"RSASSA-PKCS1-v1_5"
+  }];
 
   // Store certificate in configuration.
   originalConfig.certificate = originalCertificate;
 
-  RTC_OBJC_TYPE(RTCMediaConstraints) *contraints =
-      [[RTC_OBJC_TYPE(RTCMediaConstraints) alloc] initWithMandatoryConstraints:@{}
-                                                           optionalConstraints:nil];
-  RTC_OBJC_TYPE(RTCPeerConnectionFactory) *factory =
-      [[RTC_OBJC_TYPE(RTCPeerConnectionFactory) alloc] init];
+  RTCMediaConstraints *contraints =
+      [[RTCMediaConstraints alloc] initWithMandatoryConstraints:@{} optionalConstraints:nil];
+  RTCPeerConnectionFactory *factory = [[RTCPeerConnectionFactory alloc] init];
 
   // Create PeerConnection with this certificate.
-  RTC_OBJC_TYPE(RTCPeerConnection) *peerConnection =
+  RTCPeerConnection *peerConnection =
       [factory peerConnectionWithConfiguration:originalConfig constraints:contraints delegate:nil];
 
   // Retrieve certificate from the configuration.
-  RTC_OBJC_TYPE(RTCConfiguration) *retrievedConfig = peerConnection.configuration;
+  RTCConfiguration *retrievedConfig = peerConnection.configuration;
 
   // Extract PEM strings from original certificate.
   std::string originalPrivateKeyField = [[originalCertificate private_key] UTF8String];
   std::string originalCertificateField = [[originalCertificate certificate] UTF8String];
 
   // Extract PEM strings from certificate retrieved from configuration.
-  RTC_OBJC_TYPE(RTCCertificate) *retrievedCertificate = retrievedConfig.certificate;
+  RTCCertificate *retrievedCertificate = retrievedConfig.certificate;
   std::string retrievedPrivateKeyField = [[retrievedCertificate private_key] UTF8String];
   std::string retrievedCertificateField = [[retrievedCertificate certificate] UTF8String];
 
@@ -71,3 +70,8 @@
 }
 
 @end
+
+TEST(CertificateTest, DISABLED_CertificateIsUsedInConfig) {
+  RTCCertificateTest *test = [[RTCCertificateTest alloc] init];
+  [test testCertificateIsUsedInConfig];
+}

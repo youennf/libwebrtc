@@ -343,6 +343,7 @@ public class EglRenderer implements VideoSink {
    * Set if the video stream should be mirrored horizontally or not.
    */
   public void setMirror(final boolean mirror) {
+    logD("setMirrorHorizontally: " + mirror);
     synchronized (layoutLock) {
       this.mirrorHorizontally = mirror;
     }
@@ -352,6 +353,7 @@ public class EglRenderer implements VideoSink {
    * Set if the video stream should be mirrored vertically or not.
    */
   public void setMirrorVertically(final boolean mirrorVertically) {
+    logD("setMirrorVertically: " + mirrorVertically);
     synchronized (layoutLock) {
       this.mirrorVertically = mirrorVertically;
     }
@@ -362,6 +364,7 @@ public class EglRenderer implements VideoSink {
    * Set this to 0 to disable cropping.
    */
   public void setLayoutAspectRatio(float layoutAspectRatio) {
+    logD("setLayoutAspectRatio: " + layoutAspectRatio);
     synchronized (layoutLock) {
       this.layoutAspectRatio = layoutAspectRatio;
     }
@@ -374,6 +377,7 @@ public class EglRenderer implements VideoSink {
    *            reduction.
    */
   public void setFpsReduction(float fps) {
+    logD("setFpsReduction: " + fps);
     synchronized (fpsReductionLock) {
       final long previousRenderPeriodNs = minRenderPeriodNs;
       if (fps <= 0) {

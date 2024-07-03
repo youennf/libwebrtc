@@ -13,31 +13,27 @@
 
 #import <Foundation/Foundation.h>
 
-#import "base/RTCMacros.h"
-
-#include "api/environment/environment.h"
 #include "api/video_codecs/video_encoder_factory.h"
 
-@protocol RTC_OBJC_TYPE
-(RTCVideoEncoderFactory);
+@protocol RTCVideoEncoderFactory;
 
 namespace webrtc {
 
 class ObjCVideoEncoderFactory : public VideoEncoderFactory {
  public:
-  explicit ObjCVideoEncoderFactory(id<RTC_OBJC_TYPE(RTCVideoEncoderFactory)>);
+  explicit ObjCVideoEncoderFactory(id<RTCVideoEncoderFactory>);
   ~ObjCVideoEncoderFactory() override;
 
-  id<RTC_OBJC_TYPE(RTCVideoEncoderFactory)> wrapped_encoder_factory() const;
+  id<RTCVideoEncoderFactory> wrapped_encoder_factory() const;
 
   std::vector<SdpVideoFormat> GetSupportedFormats() const override;
   std::vector<SdpVideoFormat> GetImplementations() const override;
-  std::unique_ptr<VideoEncoder> Create(const Environment& env,
-                                       const SdpVideoFormat& format) override;
-  std::unique_ptr<EncoderSelectorInterface> GetEncoderSelector() const override;
+  std::unique_ptr<VideoEncoder> Create(
+      const Environment& env,
+      const SdpVideoFormat& format) override;
 
  private:
-  id<RTC_OBJC_TYPE(RTCVideoEncoderFactory)> encoder_factory_;
+  id<RTCVideoEncoderFactory> encoder_factory_;
 };
 
 }  // namespace webrtc

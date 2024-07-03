@@ -14,15 +14,13 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RTC_OBJC_TYPE (RTCRtpParameters)
-()
+@interface RTCRtpParameters ()
 
-    /** Returns the equivalent native RtpParameters structure. */
-    @property(nonatomic, readonly) webrtc::RtpParameters nativeParameters;
+/** Returns the equivalent native RtpParameters structure. */
+@property(nonatomic, readonly) webrtc::RtpParameters nativeParameters;
 
 /** Initialize the object with a native RtpParameters structure. */
-- (instancetype)initWithNativeParameters:(const webrtc::RtpParameters &)nativeParameters
-    NS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithNativeParameters:(const webrtc::RtpParameters &)nativeParameters;
 
 @end
 

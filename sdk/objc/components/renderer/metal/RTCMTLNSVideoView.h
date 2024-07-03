@@ -12,10 +12,12 @@
 
 #import "RTCVideoRenderer.h"
 
-RTC_OBJC_EXPORT
-@interface RTC_OBJC_TYPE (RTCMTLNSVideoView) : NSView <RTC_OBJC_TYPE(RTCVideoRenderer)>
+NS_AVAILABLE_MAC(10.11)
 
-@property(nonatomic, weak) id<RTC_OBJC_TYPE(RTCVideoViewDelegate)> delegate;
+RTC_OBJC_EXPORT
+@interface RTCMTLNSVideoView : NSView <RTCVideoRenderer>
+
+@property(nonatomic, weak) id<RTCVideoViewDelegate> delegate;
 
 + (BOOL)isMetalAvailable;
 

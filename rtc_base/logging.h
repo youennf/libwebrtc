@@ -511,6 +511,7 @@ class LogMessage {
   //  Debug: Debug console on Windows, otherwise stderr
   static void LogToDebug(LoggingSeverity min_sev);
   static LoggingSeverity GetLogToDebug();
+
   // Sets whether logs will be directed to stderr in debug mode.
   static void SetLogToStderr(bool log_to_stderr);
   // Stream: Any non-blocking stream interface.

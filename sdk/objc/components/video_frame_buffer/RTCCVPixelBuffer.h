@@ -17,7 +17,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** RTCVideoFrameBuffer containing a CVPixelBufferRef */
 RTC_OBJC_EXPORT
-@interface RTC_OBJC_TYPE (RTCCVPixelBuffer) : NSObject <RTC_OBJC_TYPE(RTCVideoFrameBuffer)>
+__attribute__((objc_runtime_name("WK_RTCCVPixelBuffer")))
+@interface RTCCVPixelBuffer : NSObject <RTCVideoFrameBuffer>
 
 @property(nonatomic, readonly) CVPixelBufferRef pixelBuffer;
 @property(nonatomic, readonly) int cropX;
@@ -40,13 +41,16 @@ RTC_OBJC_EXPORT
 - (BOOL)requiresScalingToWidth:(int)width height:(int)height;
 - (int)bufferSizeForCroppingAndScalingToWidth:(int)width height:(int)height;
 
-/** The minimum size of the `tmpBuffer` must be the number of bytes returned from the
+/** The minimum size of the |tmpBuffer| must be the number of bytes returned from the
  * bufferSizeForCroppingAndScalingToWidth:height: method.
- * If that size is 0, the `tmpBuffer` may be nil.
+ * If that size is 0, the |tmpBuffer| may be nil.
  */
 - (BOOL)cropAndScaleTo:(CVPixelBufferRef)outputPixelBuffer
         withTempBuffer:(nullable uint8_t *)tmpBuffer;
 
+#if defined(WEBRTC_WEBKIT_BUILD)
+- (void)close;
+#endif
 @end
 
 NS_ASSUME_NONNULL_END

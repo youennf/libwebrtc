@@ -10,7 +10,11 @@
 
 #import "RTCI420TextureCache.h"
 
+#if TARGET_OS_IPHONE
 #import <OpenGLES/ES3/gl.h>
+#else
+#import <OpenGL/gl3.h>
+#endif
 
 #import "base/RTCI420Buffer.h"
 #import "base/RTCVideoFrameBuffer.h"
@@ -47,7 +51,11 @@ static const GLsizei kNumTextures = kNumTexturesPerSet * kNumTextureSets;
 
 - (instancetype)initWithContext:(GlContextType *)context {
   if (self = [super init]) {
+#if TARGET_OS_IPHONE
     _hasUnpackRowLength = (context.API == kEAGLRenderingAPIOpenGLES3);
+#else
+    _hasUnpackRowLength = YES;
+#endif
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     [self setupTextures];
@@ -115,10 +123,10 @@ static const GLsizei kNumTextures = kNumTexturesPerSet * kNumTextureSets;
                uploadPlane);
 }
 
-- (void)uploadFrameToTextures:(RTC_OBJC_TYPE(RTCVideoFrame) *)frame {
+- (void)uploadFrameToTextures:(RTCVideoFrame *)frame {
   _currentTextureSet = (_currentTextureSet + 1) % kNumTextureSets;
 
-  id<RTC_OBJC_TYPE(RTCI420Buffer)> buffer = [frame.buffer toI420];
+  id<RTCI420Buffer> buffer = [frame.buffer toI420];
 
   const int chromaWidth = buffer.chromaWidth;
   const int chromaHeight = buffer.chromaHeight;

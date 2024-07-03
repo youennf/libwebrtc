@@ -227,13 +227,10 @@ public class NetworkMonitor {
   /** Alerts all observers of a connection change. */
   private void notifyObserversOfConnectionTypeChange(
       NetworkChangeDetector.ConnectionType newConnectionType) {
-
-    synchronized (nativeNetworkObservers) {
-      for (Long nativeObserver : nativeNetworkObservers) {
-        nativeNotifyConnectionTypeChanged(nativeObserver);
-      }
+    List<Long> nativeObservers = getNativeNetworkObserversSync();
+    for (Long nativeObserver : nativeObservers) {
+      nativeNotifyConnectionTypeChanged(nativeObserver);
     }
-
     // This avoids calling external methods while locking on an object.
     List<NetworkObserver> javaObservers;
     synchronized (networkObservers) {
@@ -246,28 +243,25 @@ public class NetworkMonitor {
 
   private void notifyObserversOfNetworkConnect(
       NetworkChangeDetector.NetworkInformation networkInfo) {
-    synchronized (nativeNetworkObservers) {
-      for (Long nativeObserver : nativeNetworkObservers) {
-        nativeNotifyOfNetworkConnect(nativeObserver, networkInfo);
-      }
+    List<Long> nativeObservers = getNativeNetworkObserversSync();
+    for (Long nativeObserver : nativeObservers) {
+      nativeNotifyOfNetworkConnect(nativeObserver, networkInfo);
     }
   }
 
   private void notifyObserversOfNetworkDisconnect(long networkHandle) {
-    synchronized (nativeNetworkObservers) {
-      for (Long nativeObserver : nativeNetworkObservers) {
-        nativeNotifyOfNetworkDisconnect(nativeObserver, networkHandle);
-      }
+    List<Long> nativeObservers = getNativeNetworkObserversSync();
+    for (Long nativeObserver : nativeObservers) {
+      nativeNotifyOfNetworkDisconnect(nativeObserver, networkHandle);
     }
   }
 
   private void notifyObserversOfNetworkPreference(
       List<NetworkChangeDetector.ConnectionType> types, int preference) {
-    synchronized(nativeNetworkObservers) {
-      for (NetworkChangeDetector.ConnectionType type : types) {
-        for (Long nativeObserver : nativeNetworkObservers) {
-          nativeNotifyOfNetworkPreference(nativeObserver, type, preference);
-        }
+    List<Long> nativeObservers = getNativeNetworkObserversSync();
+    for (NetworkChangeDetector.ConnectionType type : types) {
+      for (Long nativeObserver : nativeObservers) {
+        nativeNotifyOfNetworkPreference(nativeObserver, type, preference);
       }
     }
   }
@@ -286,6 +280,12 @@ public class NetworkMonitor {
         new NetworkChangeDetector.NetworkInformation[networkInfoList.size()];
     networkInfos = networkInfoList.toArray(networkInfos);
     nativeNotifyOfActiveNetworkList(nativeObserver, networkInfos);
+  }
+
+  private List<Long> getNativeNetworkObserversSync() {
+    synchronized (nativeNetworkObservers) {
+      return new ArrayList<>(nativeNetworkObservers);
+    }
   }
 
   /**

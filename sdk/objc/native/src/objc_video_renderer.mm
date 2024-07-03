@@ -10,7 +10,6 @@
 
 #include "sdk/objc/native/src/objc_video_renderer.h"
 
-#import "base/RTCMacros.h"
 #import "base/RTCVideoFrame.h"
 #import "base/RTCVideoRenderer.h"
 
@@ -18,11 +17,11 @@
 
 namespace webrtc {
 
-ObjCVideoRenderer::ObjCVideoRenderer(id<RTC_OBJC_TYPE(RTCVideoRenderer)> renderer)
+ObjCVideoRenderer::ObjCVideoRenderer(id<RTCVideoRenderer> renderer)
     : renderer_(renderer), size_(CGSizeZero) {}
 
 void ObjCVideoRenderer::OnFrame(const VideoFrame& nativeVideoFrame) {
-  RTC_OBJC_TYPE(RTCVideoFrame)* videoFrame = ToObjCVideoFrame(nativeVideoFrame);
+  RTCVideoFrame* videoFrame = ToObjCVideoFrame(nativeVideoFrame);
 
   CGSize current_size = (videoFrame.rotation % 180 == 0) ?
       CGSizeMake(videoFrame.width, videoFrame.height) :

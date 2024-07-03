@@ -16,7 +16,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** QP thresholds for encoder. Corresponds to webrtc::VideoEncoder::QpThresholds. */
 RTC_OBJC_EXPORT
-@interface RTC_OBJC_TYPE (RTCVideoEncoderQpThresholds) : NSObject
+__attribute__((objc_runtime_name("WK_RTCVideoEncoderQpThresholds")))
+@interface RTCVideoEncoderQpThresholds : NSObject
 
 - (instancetype)initWithThresholdsLow:(NSInteger)low high:(NSInteger)high;
 

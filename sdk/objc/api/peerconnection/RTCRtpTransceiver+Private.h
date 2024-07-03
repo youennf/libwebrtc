@@ -14,32 +14,30 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class RTC_OBJC_TYPE(RTCPeerConnectionFactory);
+@class RTCPeerConnectionFactory;
 
-@interface RTC_OBJC_TYPE (RTCRtpTransceiverInit)
-()
+@interface RTCRtpTransceiverInit ()
 
-    @property(nonatomic, readonly) webrtc::RtpTransceiverInit nativeInit;
+@property(nonatomic, readonly) webrtc::RtpTransceiverInit nativeInit;
 
 @end
 
-@interface RTC_OBJC_TYPE (RTCRtpTransceiver)
-()
+@interface RTCRtpTransceiver ()
 
-    @property(nonatomic,
-              readonly) rtc::scoped_refptr<webrtc::RtpTransceiverInterface> nativeRtpTransceiver;
+@property(nonatomic, readonly) rtc::scoped_refptr<webrtc::RtpTransceiverInterface>
+    nativeRtpTransceiver;
 
 /** Initialize an RTCRtpTransceiver with a native RtpTransceiverInterface. */
-- (instancetype)initWithFactory:(RTC_OBJC_TYPE(RTCPeerConnectionFactory) *)factory
+- (instancetype)initWithFactory:(RTCPeerConnectionFactory*)factory
            nativeRtpTransceiver:
                (rtc::scoped_refptr<webrtc::RtpTransceiverInterface>)nativeRtpTransceiver
     NS_DESIGNATED_INITIALIZER;
 
 + (webrtc::RtpTransceiverDirection)nativeRtpTransceiverDirectionFromDirection:
-    (RTCRtpTransceiverDirection)direction;
+        (RTCRtpTransceiverDirection)direction;
 
 + (RTCRtpTransceiverDirection)rtpTransceiverDirectionFromNativeDirection:
-    (webrtc::RtpTransceiverDirection)nativeDirection;
+        (webrtc::RtpTransceiverDirection)nativeDirection;
 
 @end
 

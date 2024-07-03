@@ -10,11 +10,8 @@
 
 package org.webrtc;
 
-import android.os.Build.VERSION;
-import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Trace;
 import android.view.Choreographer;
 import androidx.annotation.GuardedBy;
 import java.util.List;
@@ -103,15 +100,8 @@ public final class RenderSynchronizer {
     }
   }
 
-  private void traceRenderWindowChange() {
-    if (VERSION.SDK_INT >= VERSION_CODES.Q) {
-      Trace.setCounter("RenderWindow", renderWindowOpen ? 1 : 0);
-    }
-  }
-
   private void openRenderWindow() {
     renderWindowOpen = true;
-    traceRenderWindowChange();
     for (Listener listener : listeners) {
       listener.onRenderWindowOpen();
     }
@@ -119,7 +109,6 @@ public final class RenderSynchronizer {
 
   private void closeRenderWindow() {
     renderWindowOpen = false;
-    traceRenderWindowChange();
     for (Listener listener : listeners) {
       listener.onRenderWindowClose();
     }

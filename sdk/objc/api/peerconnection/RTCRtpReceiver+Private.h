@@ -14,30 +14,28 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class RTC_OBJC_TYPE(RTCPeerConnectionFactory);
+@class RTCPeerConnectionFactory;
 
 namespace webrtc {
 
 class RtpReceiverDelegateAdapter : public RtpReceiverObserverInterface {
  public:
-  RtpReceiverDelegateAdapter(RTC_OBJC_TYPE(RTCRtpReceiver) * receiver);
+  RtpReceiverDelegateAdapter(RTCRtpReceiver* receiver);
 
   void OnFirstPacketReceived(cricket::MediaType media_type) override;
 
  private:
-  __weak RTC_OBJC_TYPE(RTCRtpReceiver) * receiver_;
+  __weak RTCRtpReceiver* receiver_;
 };
 
 }  // namespace webrtc
 
-@interface RTC_OBJC_TYPE (RTCRtpReceiver)
-()
+@interface RTCRtpReceiver ()
 
-    @property(nonatomic,
-              readonly) rtc::scoped_refptr<webrtc::RtpReceiverInterface> nativeRtpReceiver;
+@property(nonatomic, readonly) rtc::scoped_refptr<webrtc::RtpReceiverInterface> nativeRtpReceiver;
 
 /** Initialize an RTCRtpReceiver with a native RtpReceiverInterface. */
-- (instancetype)initWithFactory:(RTC_OBJC_TYPE(RTCPeerConnectionFactory) *)factory
+- (instancetype)initWithFactory:(RTCPeerConnectionFactory*)factory
               nativeRtpReceiver:(rtc::scoped_refptr<webrtc::RtpReceiverInterface>)nativeRtpReceiver
     NS_DESIGNATED_INITIALIZER;
 
@@ -45,7 +43,7 @@ class RtpReceiverDelegateAdapter : public RtpReceiverObserverInterface {
 
 + (cricket::MediaType)nativeMediaTypeForMediaType:(RTCRtpMediaType)mediaType;
 
-+ (NSString *)stringForMediaType:(RTCRtpMediaType)mediaType;
++ (NSString*)stringForMediaType:(RTCRtpMediaType)mediaType;
 
 @end
 

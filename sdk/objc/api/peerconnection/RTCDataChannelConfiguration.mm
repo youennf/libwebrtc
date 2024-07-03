@@ -12,7 +12,7 @@
 
 #import "helpers/NSString+StdString.h"
 
-@implementation RTC_OBJC_TYPE (RTCDataChannelConfiguration)
+@implementation RTCDataChannelConfiguration
 
 @synthesize nativeDataChannelInit = _nativeDataChannelInit;
 
