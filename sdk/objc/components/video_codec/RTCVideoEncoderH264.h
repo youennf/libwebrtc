@@ -15,8 +15,14 @@
 #import "RTCVideoEncoder.h"
 
 RTC_OBJC_EXPORT
-@interface RTC_OBJC_TYPE (RTCVideoEncoderH264) : NSObject <RTC_OBJC_TYPE(RTCVideoEncoder)>
+__attribute__((objc_runtime_name("WK_RTCVideoEncoderH264")))
+@interface RTCVideoEncoderH264 : NSObject <RTCVideoEncoder>
 
-- (instancetype)initWithCodecInfo:(RTC_OBJC_TYPE(RTCVideoCodecInfo) *)codecInfo;
-
+- (instancetype)initWithCodecInfo:(RTCVideoCodecInfo *)codecInfo;
+- (void)setH264LowLatencyEncoderEnabled:(bool)enabled;
+- (void)setUseAnnexB:(bool)useAnnexB;
+- (void)setDescriptionCallback:(RTCVideoEncoderDescriptionCallback)callback;
+- (void)setErrorCallback:(RTCVideoEncoderErrorCallback)callback;
+- (void)flush;
+- (void)enableL1T2ScalabilityMode;
 @end

@@ -12,44 +12,34 @@
 
 #import <UIKit/UIKit.h>
 
-#include <atomic>
 #include <vector>
 
-#include "absl/base/attributes.h"
+#include "rtc_base/atomic_ops.h"
 #include "rtc_base/checks.h"
-#include "rtc_base/synchronization/mutex.h"
+#include "rtc_base/critical_section.h"
 
 #import "RTCAudioSessionConfiguration.h"
 #import "base/RTCLogging.h"
 
-#if !defined(ABSL_HAVE_THREAD_LOCAL)
-#error ABSL_HAVE_THREAD_LOCAL should be defined for MacOS / iOS Targets.
-#endif
 
-NSString *const kRTCAudioSessionErrorDomain = @"org.webrtc.RTC_OBJC_TYPE(RTCAudioSession)";
+NSString * const kRTCAudioSessionErrorDomain = @"org.webrtc.RTCAudioSession";
 NSInteger const kRTCAudioSessionErrorLockRequired = -1;
 NSInteger const kRTCAudioSessionErrorConfiguration = -2;
 NSString * const kRTCAudioSessionOutputVolumeSelector = @"outputVolume";
 
-namespace {
-// Since webrtc::Mutex is not a reentrant lock and cannot check if the mutex is locked,
-// we need a separate variable to check that the mutex is locked in the RTCAudioSession.
-ABSL_CONST_INIT thread_local bool mutex_locked = false;
-}  // namespace
-
-@interface RTC_OBJC_TYPE (RTCAudioSession)
-() @property(nonatomic,
-             readonly) std::vector<__weak id<RTC_OBJC_TYPE(RTCAudioSessionDelegate)> > delegates;
+@interface RTCAudioSession ()
+@property(nonatomic, readonly) std::vector<__weak id<RTCAudioSessionDelegate> > delegates;
 @end
 
 // This class needs to be thread-safe because it is accessed from many threads.
 // TODO(tkchin): Consider more granular locking. We're not expecting a lot of
 // lock contention so coarse locks should be fine for now.
-@implementation RTC_OBJC_TYPE (RTCAudioSession) {
-  webrtc::Mutex _mutex;
+@implementation RTCAudioSession {
+  rtc::CriticalSection _crit;
   AVAudioSession *_session;
-  std::atomic<int> _activationCount;
-  std::atomic<int> _webRTCSessionCount;
+  volatile int _activationCount;
+  volatile int _lockRecursionCount;
+  volatile int _webRTCSessionCount;
   BOOL _isActive;
   BOOL _useManualAudio;
   BOOL _isAudioEnabled;
@@ -64,7 +54,7 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
 
 + (instancetype)sharedInstance {
   static dispatch_once_t onceToken;
-  static RTC_OBJC_TYPE(RTCAudioSession) *sharedInstance = nil;
+  static RTCAudioSession *sharedInstance = nil;
   dispatch_once(&onceToken, ^{
     sharedInstance = [[self alloc] init];
   });
@@ -112,9 +102,9 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
     [_session addObserver:self
                forKeyPath:kRTCAudioSessionOutputVolumeSelector
                   options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld
-                  context:(__bridge void *)RTC_OBJC_TYPE(RTCAudioSession).class];
+                  context:(__bridge void*)RTCAudioSession.class];
 
-    RTCLog(@"RTC_OBJC_TYPE(RTCAudioSession) (%p): init.", self);
+    RTCLog(@"RTCAudioSession (%p): init.", self);
   }
   return self;
 }
@@ -123,24 +113,25 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   [_session removeObserver:self
                 forKeyPath:kRTCAudioSessionOutputVolumeSelector
-                   context:(__bridge void *)RTC_OBJC_TYPE(RTCAudioSession).class];
-  RTCLog(@"RTC_OBJC_TYPE(RTCAudioSession) (%p): dealloc.", self);
+                   context:(__bridge void*)RTCAudioSession.class];
+  RTCLog(@"RTCAudioSession (%p): dealloc.", self);
 }
 
 - (NSString *)description {
-  NSString *format = @"RTC_OBJC_TYPE(RTCAudioSession): {\n"
-                      "  category: %@\n"
-                      "  categoryOptions: %ld\n"
-                      "  mode: %@\n"
-                      "  isActive: %d\n"
-                      "  sampleRate: %.2f\n"
-                      "  IOBufferDuration: %f\n"
-                      "  outputNumberOfChannels: %ld\n"
-                      "  inputNumberOfChannels: %ld\n"
-                      "  outputLatency: %f\n"
-                      "  inputLatency: %f\n"
-                      "  outputVolume: %f\n"
-                      "}";
+  NSString *format =
+      @"RTCAudioSession: {\n"
+       "  category: %@\n"
+       "  categoryOptions: %ld\n"
+       "  mode: %@\n"
+       "  isActive: %d\n"
+       "  sampleRate: %.2f\n"
+       "  IOBufferDuration: %f\n"
+       "  outputNumberOfChannels: %ld\n"
+       "  inputNumberOfChannels: %ld\n"
+       "  outputLatency: %f\n"
+       "  inputLatency: %f\n"
+       "  outputVolume: %f\n"
+       "}";
   NSString *description = [NSString stringWithFormat:format,
       self.category, (long)self.categoryOptions, self.mode,
       self.isActive, self.sampleRate, self.IOBufferDuration,
@@ -159,6 +150,10 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
   @synchronized(self) {
     return _isActive;
   }
+}
+
+- (BOOL)isLocked {
+  return _lockRecursionCount > 0;
 }
 
 - (void)setUseManualAudio:(BOOL)useManualAudio {
@@ -211,7 +206,7 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
 }
 
 // TODO(tkchin): Check for duplicates.
-- (void)addDelegate:(id<RTC_OBJC_TYPE(RTCAudioSessionDelegate)>)delegate {
+- (void)addDelegate:(id<RTCAudioSessionDelegate>)delegate {
   RTCLog(@"Adding delegate: (%p)", delegate);
   if (!delegate) {
     return;
@@ -222,7 +217,7 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
   }
 }
 
-- (void)removeDelegate:(id<RTC_OBJC_TYPE(RTCAudioSessionDelegate)>)delegate {
+- (void)removeDelegate:(id<RTCAudioSessionDelegate>)delegate {
   RTCLog(@"Removing delegate: (%p)", delegate);
   if (!delegate) {
     return;
@@ -240,14 +235,20 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
 #pragma clang diagnostic ignored "-Wthread-safety-analysis"
 
 - (void)lockForConfiguration {
-  RTC_CHECK(!mutex_locked);
-  _mutex.Lock();
-  mutex_locked = true;
+  _crit.Enter();
+  rtc::AtomicOps::Increment(&_lockRecursionCount);
 }
 
 - (void)unlockForConfiguration {
-  mutex_locked = false;
-  _mutex.Unlock();
+  // Don't let threads other than the one that called lockForConfiguration
+  // unlock.
+  if (_crit.TryEnter()) {
+    rtc::AtomicOps::Decrement(&_lockRecursionCount);
+    // One unlock for the tryLock, and another one to actually unlock. If this
+    // was called without anyone calling lock, we will hit an assertion.
+    _crit.Leave();
+    _crit.Leave();
+  }
 }
 
 #pragma clang diagnostic pop
@@ -346,12 +347,14 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
   return self.session.preferredIOBufferDuration;
 }
 
+// TODO(tkchin): Simplify the amount of locking happening here. Likely that we
+// can just do atomic increments / decrements.
 - (BOOL)setActive:(BOOL)active
             error:(NSError **)outError {
   if (![self checkLock:outError]) {
     return NO;
   }
-  int activationCount = _activationCount.load();
+  int activationCount = _activationCount;
   if (!active && activationCount == 0) {
     RTCLogWarning(@"Attempting to deactivate without prior activation.");
   }
@@ -380,46 +383,31 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
     }
   }
   if (success) {
-    if (active) {
-      if (shouldSetActive) {
-        self.isActive = active;
-        if (self.isInterrupted) {
-          self.isInterrupted = NO;
-          [self notifyDidEndInterruptionWithShouldResumeSession:YES];
-        }
+    if (shouldSetActive) {
+      self.isActive = active;
+      if (active && self.isInterrupted) {
+        self.isInterrupted = NO;
+        [self notifyDidEndInterruptionWithShouldResumeSession:YES];
       }
-      [self incrementActivationCount];
-      [self notifyDidSetActive:active];
     }
+    if (active) {
+      [self incrementActivationCount];
+    }
+    [self notifyDidSetActive:active];
   } else {
     RTCLogError(@"Failed to setActive:%d. Error: %@",
                 active, error.localizedDescription);
     [self notifyFailedToSetActive:active error:error];
   }
-  // Set isActive and decrement activation count on deactivation
-  // whether or not it succeeded.
+  // Decrement activation count on deactivation whether or not it succeeded.
   if (!active) {
-    if (shouldSetActive) {
-      self.isActive = active;
-      [self notifyDidSetActive:active];
-    }
     [self decrementActivationCount];
   }
-  RTCLog(@"Number of current activations: %d", _activationCount.load());
+  RTCLog(@"Number of current activations: %d", _activationCount);
   return success;
 }
 
-- (BOOL)setCategory:(AVAudioSessionCategory)category
-               mode:(AVAudioSessionMode)mode
-            options:(AVAudioSessionCategoryOptions)options
-              error:(NSError **)outError {
-  if (![self checkLock:outError]) {
-    return NO;
-  }
-  return [self.session setCategory:category mode:mode options:options error:outError];
-}
-
-- (BOOL)setCategory:(AVAudioSessionCategory)category
+- (BOOL)setCategory:(NSString *)category
         withOptions:(AVAudioSessionCategoryOptions)options
               error:(NSError **)outError {
   if (![self checkLock:outError]) {
@@ -428,7 +416,7 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
   return [self.session setCategory:category withOptions:options error:outError];
 }
 
-- (BOOL)setMode:(AVAudioSessionMode)mode error:(NSError **)outError {
+- (BOOL)setMode:(NSString *)mode error:(NSError **)outError {
   if (![self checkLock:outError]) {
     return NO;
   }
@@ -622,15 +610,18 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
 #pragma mark - Private
 
 + (NSError *)lockError {
-  NSDictionary *userInfo =
-      @{NSLocalizedDescriptionKey : @"Must call lockForConfiguration before calling this method."};
-  NSError *error = [[NSError alloc] initWithDomain:kRTCAudioSessionErrorDomain
-                                              code:kRTCAudioSessionErrorLockRequired
-                                          userInfo:userInfo];
+  NSDictionary *userInfo = @{
+    NSLocalizedDescriptionKey:
+        @"Must call lockForConfiguration before calling this method."
+  };
+  NSError *error =
+      [[NSError alloc] initWithDomain:kRTCAudioSessionErrorDomain
+                                 code:kRTCAudioSessionErrorLockRequired
+                             userInfo:userInfo];
   return error;
 }
 
-- (std::vector<__weak id<RTC_OBJC_TYPE(RTCAudioSessionDelegate)> >)delegates {
+- (std::vector<__weak id<RTCAudioSessionDelegate> >)delegates {
   @synchronized(self) {
     // Note: this returns a copy.
     return _delegates;
@@ -638,7 +629,7 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
 }
 
 // TODO(tkchin): check for duplicates.
-- (void)pushDelegate:(id<RTC_OBJC_TYPE(RTCAudioSessionDelegate)>)delegate {
+- (void)pushDelegate:(id<RTCAudioSessionDelegate>)delegate {
   @synchronized(self) {
     _delegates.insert(_delegates.begin(), delegate);
   }
@@ -655,21 +646,21 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
 }
 
 - (int)activationCount {
-  return _activationCount.load();
+  return _activationCount;
 }
 
 - (int)incrementActivationCount {
   RTCLog(@"Incrementing activation count.");
-  return _activationCount.fetch_add(1) + 1;
+  return rtc::AtomicOps::Increment(&_activationCount);
 }
 
 - (NSInteger)decrementActivationCount {
   RTCLog(@"Decrementing activation count.");
-  return _activationCount.fetch_sub(1) - 1;
+  return rtc::AtomicOps::Decrement(&_activationCount);
 }
 
 - (int)webRTCSessionCount {
-  return _webRTCSessionCount.load();
+  return _webRTCSessionCount;
 }
 
 - (BOOL)canPlayOrRecord {
@@ -692,9 +683,11 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
 }
 
 - (BOOL)checkLock:(NSError **)outError {
-  if (!mutex_locked) {
+  // Check ivar instead of trying to acquire lock so that we won't accidentally
+  // acquire lock if it hasn't already been called.
+  if (!self.isLocked) {
     if (outError) {
-      *outError = [RTC_OBJC_TYPE(RTCAudioSession) lockError];
+      *outError = [RTCAudioSession lockError];
     }
     return NO;
   }
@@ -705,7 +698,10 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
   if (outError) {
     *outError = nil;
   }
-  _webRTCSessionCount.fetch_add(1);
+  if (![self checkLock:outError]) {
+    return NO;
+  }
+  rtc::AtomicOps::Increment(&_webRTCSessionCount);
   [self notifyDidStartPlayOrRecord];
   return YES;
 }
@@ -714,7 +710,10 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
   if (outError) {
     *outError = nil;
   }
-  _webRTCSessionCount.fetch_sub(1);
+  if (![self checkLock:outError]) {
+    return NO;
+  }
+  rtc::AtomicOps::Decrement(&_webRTCSessionCount);
   [self notifyDidStopPlayOrRecord];
   return YES;
 }
@@ -723,13 +722,16 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
   if (outError) {
     *outError = nil;
   }
+  if (![self checkLock:outError]) {
+    return NO;
+  }
   RTCLog(@"Configuring audio session for WebRTC.");
 
   // Configure the AVAudioSession and activate it.
   // Provide an error even if there isn't one so we can log it.
   NSError *error = nil;
-  RTC_OBJC_TYPE(RTCAudioSessionConfiguration) *webRTCConfig =
-      [RTC_OBJC_TYPE(RTCAudioSessionConfiguration) webRTCConfiguration];
+  RTCAudioSessionConfiguration *webRTCConfig =
+      [RTCAudioSessionConfiguration webRTCConfiguration];
   if (![self setConfiguration:webRTCConfig active:YES error:&error]) {
     RTCLogError(@"Failed to set WebRTC audio configuration: %@",
                 error.localizedDescription);
@@ -782,6 +784,9 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
 - (BOOL)unconfigureWebRTCSession:(NSError **)outError {
   if (outError) {
     *outError = nil;
+  }
+  if (![self checkLock:outError]) {
+    return NO;
   }
   RTCLog(@"Unconfiguring audio session for WebRTC.");
   [self setActive:NO error:outError];
@@ -861,7 +866,7 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
                       ofObject:(id)object
                         change:(NSDictionary *)change
                        context:(void *)context {
-  if (context == (__bridge void *)RTC_OBJC_TYPE(RTCAudioSession).class) {
+  if (context == (__bridge void*)RTCAudioSession.class) {
     if (object == _session) {
       NSNumber *newVolume = change[NSKeyValueChangeNewKey];
       RTCLog(@"OutputVolumeDidChange to %f", newVolume.floatValue);
@@ -872,18 +877,6 @@ ABSL_CONST_INIT thread_local bool mutex_locked = false;
                          ofObject:object
                            change:change
                           context:context];
-  }
-}
-
-- (void)notifyAudioUnitStartFailedWithError:(OSStatus)error {
-  for (auto delegate : self.delegates) {
-    SEL sel = @selector(audioSession:audioUnitStartFailedWithError:);
-    if ([delegate respondsToSelector:sel]) {
-      [delegate audioSession:self
-          audioUnitStartFailedWithError:[NSError errorWithDomain:kRTCAudioSessionErrorDomain
-                                                            code:error
-                                                        userInfo:nil]];
-    }
   }
 }
 

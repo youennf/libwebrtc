@@ -21,7 +21,8 @@ typedef NS_ENUM(NSUInteger, RTCVideoCodecMode) {
 
 /** Settings for encoder. Corresponds to webrtc::VideoCodec. */
 RTC_OBJC_EXPORT
-@interface RTC_OBJC_TYPE (RTCVideoEncoderSettings) : NSObject
+__attribute__((objc_runtime_name("WK_RTCVideoEncoderSettings")))
+@interface RTCVideoEncoderSettings : NSObject
 
 @property(nonatomic, strong) NSString *name;
 

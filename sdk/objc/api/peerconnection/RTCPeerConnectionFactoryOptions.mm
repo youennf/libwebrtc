@@ -25,7 +25,7 @@ void setNetworkBit(webrtc::PeerConnectionFactoryInterface::Options* options,
 }
 }  // namespace
 
-@implementation RTC_OBJC_TYPE (RTCPeerConnectionFactoryOptions)
+@implementation RTCPeerConnectionFactoryOptions
 
 @synthesize disableEncryption = _disableEncryption;
 @synthesize disableNetworkMonitor = _disableNetworkMonitor;

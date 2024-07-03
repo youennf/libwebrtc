@@ -17,7 +17,7 @@
 namespace webrtc {
 
 std::unique_ptr<VideoEncoderFactory> ObjCToNativeVideoEncoderFactory(
-    id<RTC_OBJC_TYPE(RTCVideoEncoderFactory)> objc_video_encoder_factory) {
+    id<RTCVideoEncoderFactory> objc_video_encoder_factory) {
   return std::make_unique<ObjCVideoEncoderFactory>(objc_video_encoder_factory);
 }
 

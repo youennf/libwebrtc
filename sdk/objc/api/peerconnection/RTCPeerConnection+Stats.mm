@@ -28,8 +28,7 @@ class StatsCollectorCallbackAdapter : public RTCStatsCollectorCallback {
 
   void OnStatsDelivered(const rtc::scoped_refptr<const RTCStatsReport> &report) override {
     RTC_DCHECK(completion_handler_);
-    RTC_OBJC_TYPE(RTCStatisticsReport) *statisticsReport =
-        [[RTC_OBJC_TYPE(RTCStatisticsReport) alloc] initWithReport:*report];
+    RTCStatisticsReport *statisticsReport = [[RTCStatisticsReport alloc] initWithReport:*report];
     completion_handler_(statisticsReport);
     completion_handler_ = nil;
   }
@@ -40,8 +39,8 @@ class StatsCollectorCallbackAdapter : public RTCStatsCollectorCallback {
 
 class StatsObserverAdapter : public StatsObserver {
  public:
-  StatsObserverAdapter(
-      void (^completionHandler)(NSArray<RTC_OBJC_TYPE(RTCLegacyStatsReport) *> *stats)) {
+  StatsObserverAdapter(void (^completionHandler)
+      (NSArray<RTCLegacyStatsReport *> *stats)) {
     completion_handler_ = completionHandler;
   }
 
@@ -51,8 +50,8 @@ class StatsObserverAdapter : public StatsObserver {
     RTC_DCHECK(completion_handler_);
     NSMutableArray *stats = [NSMutableArray arrayWithCapacity:reports.size()];
     for (const auto* report : reports) {
-      RTC_OBJC_TYPE(RTCLegacyStatsReport) *statsReport =
-          [[RTC_OBJC_TYPE(RTCLegacyStatsReport) alloc] initWithNativeReport:*report];
+      RTCLegacyStatsReport *statsReport =
+          [[RTCLegacyStatsReport alloc] initWithNativeReport:*report];
       [stats addObject:statsReport];
     }
     completion_handler_(stats);
@@ -60,43 +59,43 @@ class StatsObserverAdapter : public StatsObserver {
   }
 
  private:
-  void (^completion_handler_)(NSArray<RTC_OBJC_TYPE(RTCLegacyStatsReport) *> *stats);
+  void (^completion_handler_)(NSArray<RTCLegacyStatsReport *> *stats);
 };
 }  // namespace webrtc
 
-@implementation RTC_OBJC_TYPE (RTCPeerConnection)
-(Stats)
+@implementation RTCPeerConnection (Stats)
 
-    - (void)statisticsForSender : (RTC_OBJC_TYPE(RTCRtpSender) *)sender completionHandler
-    : (RTCStatisticsCompletionHandler)completionHandler {
-  rtc::scoped_refptr<webrtc::StatsCollectorCallbackAdapter> collector =
-      rtc::make_ref_counted<webrtc::StatsCollectorCallbackAdapter>(completionHandler);
+- (void)statisticsForSender:(RTCRtpSender *)sender
+          completionHandler:(RTCStatisticsCompletionHandler)completionHandler {
+  rtc::scoped_refptr<webrtc::StatsCollectorCallbackAdapter> collector(
+      new rtc::RefCountedObject<webrtc::StatsCollectorCallbackAdapter>(completionHandler));
   self.nativePeerConnection->GetStats(sender.nativeRtpSender, collector);
 }
 
-- (void)statisticsForReceiver:(RTC_OBJC_TYPE(RTCRtpReceiver) *)receiver
+- (void)statisticsForReceiver:(RTCRtpReceiver *)receiver
             completionHandler:(RTCStatisticsCompletionHandler)completionHandler {
-  rtc::scoped_refptr<webrtc::StatsCollectorCallbackAdapter> collector =
-      rtc::make_ref_counted<webrtc::StatsCollectorCallbackAdapter>(completionHandler);
+  rtc::scoped_refptr<webrtc::StatsCollectorCallbackAdapter> collector(
+      new rtc::RefCountedObject<webrtc::StatsCollectorCallbackAdapter>(completionHandler));
   self.nativePeerConnection->GetStats(receiver.nativeRtpReceiver, collector);
 }
 
 - (void)statisticsWithCompletionHandler:(RTCStatisticsCompletionHandler)completionHandler {
-  rtc::scoped_refptr<webrtc::StatsCollectorCallbackAdapter> collector =
-      rtc::make_ref_counted<webrtc::StatsCollectorCallbackAdapter>(completionHandler);
-  self.nativePeerConnection->GetStats(collector.get());
+  rtc::scoped_refptr<webrtc::StatsCollectorCallbackAdapter> collector(
+      new rtc::RefCountedObject<webrtc::StatsCollectorCallbackAdapter>(completionHandler));
+  self.nativePeerConnection->GetStats(collector);
 }
 
-- (void)statsForTrack:(RTC_OBJC_TYPE(RTCMediaStreamTrack) *)mediaStreamTrack
+- (void)statsForTrack:(RTCMediaStreamTrack *)mediaStreamTrack
      statsOutputLevel:(RTCStatsOutputLevel)statsOutputLevel
     completionHandler:
-        (void (^)(NSArray<RTC_OBJC_TYPE(RTCLegacyStatsReport) *> *stats))completionHandler {
-  rtc::scoped_refptr<webrtc::StatsObserverAdapter> observer =
-      rtc::make_ref_counted<webrtc::StatsObserverAdapter>(completionHandler);
+    (void (^)(NSArray<RTCLegacyStatsReport *> *stats))completionHandler {
+  rtc::scoped_refptr<webrtc::StatsObserverAdapter> observer(
+      new rtc::RefCountedObject<webrtc::StatsObserverAdapter>
+          (completionHandler));
   webrtc::PeerConnectionInterface::StatsOutputLevel nativeOutputLevel =
       [[self class] nativeStatsOutputLevelForLevel:statsOutputLevel];
   self.nativePeerConnection->GetStats(
-      observer.get(), mediaStreamTrack.nativeTrack.get(), nativeOutputLevel);
+      observer, mediaStreamTrack.nativeTrack, nativeOutputLevel);
 }
 
 @end

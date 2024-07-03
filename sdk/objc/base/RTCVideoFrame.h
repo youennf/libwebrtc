@@ -22,12 +22,12 @@ typedef NS_ENUM(NSInteger, RTCVideoRotation) {
   RTCVideoRotation_270 = 270,
 };
 
-@protocol RTC_OBJC_TYPE
-(RTCVideoFrameBuffer);
+@protocol RTCVideoFrameBuffer;
 
 // RTCVideoFrame is an ObjectiveC version of webrtc::VideoFrame.
 RTC_OBJC_EXPORT
-@interface RTC_OBJC_TYPE (RTCVideoFrame) : NSObject
+__attribute__((objc_runtime_name("WK_RTCVideoFrame")))
+@interface RTCVideoFrame : NSObject
 
 /** Width without rotation applied. */
 @property(nonatomic, readonly) int width;
@@ -40,12 +40,14 @@ RTC_OBJC_EXPORT
 @property(nonatomic, readonly) int64_t timeStampNs;
 
 /** Timestamp 90 kHz. */
-@property(nonatomic, assign) int32_t timeStamp;
+@property(nonatomic, assign) int64_t timeStamp;
 
-@property(nonatomic, readonly) id<RTC_OBJC_TYPE(RTCVideoFrameBuffer)> buffer;
+@property(nonatomic, assign) uint64_t duration;
+
+@property(nonatomic, readonly) id<RTCVideoFrameBuffer> buffer;
 
 - (instancetype)init NS_UNAVAILABLE;
-- (instancetype)new NS_UNAVAILABLE;
+- (instancetype) new NS_UNAVAILABLE;
 
 /** Initialize an RTCVideoFrame from a pixel buffer, rotation, and timestamp.
  *  Deprecated - initialize with a RTCCVPixelBuffer instead
@@ -72,14 +74,14 @@ RTC_OBJC_EXPORT
 
 /** Initialize an RTCVideoFrame from a frame buffer, rotation, and timestamp.
  */
-- (instancetype)initWithBuffer:(id<RTC_OBJC_TYPE(RTCVideoFrameBuffer)>)frameBuffer
+- (instancetype)initWithBuffer:(id<RTCVideoFrameBuffer>)frameBuffer
                       rotation:(RTCVideoRotation)rotation
                    timeStampNs:(int64_t)timeStampNs;
 
 /** Return a frame that is guaranteed to be I420, i.e. it is possible to access
  *  the YUV data on it.
  */
-- (RTC_OBJC_TYPE(RTCVideoFrame) *)newI420VideoFrame;
+- (RTCVideoFrame *)newI420VideoFrame;
 
 @end
 

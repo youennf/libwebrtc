@@ -14,7 +14,7 @@
 
 @interface RTCCallbackLoggerTests : XCTestCase
 
-@property(nonatomic, strong) RTC_OBJC_TYPE(RTCCallbackLogger) * logger;
+@property(nonatomic, strong) RTCCallbackLogger *logger;
 
 @end
 
@@ -23,7 +23,7 @@
 @synthesize logger;
 
 - (void)setUp {
-  self.logger = [[RTC_OBJC_TYPE(RTCCallbackLogger) alloc] init];
+  self.logger = [[RTCCallbackLogger alloc] init];
 }
 
 - (void)tearDown {

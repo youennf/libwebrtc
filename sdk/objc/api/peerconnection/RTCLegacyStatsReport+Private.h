@@ -10,15 +10,14 @@
 
 #import "RTCLegacyStatsReport.h"
 
-#include "api/legacy_stats_types.h"
+#include "api/stats_types.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RTC_OBJC_TYPE (RTCLegacyStatsReport)
-()
+@interface RTCLegacyStatsReport ()
 
-    /** Initialize an RTCLegacyStatsReport object from a native StatsReport. */
-    - (instancetype)initWithNativeReport : (const webrtc::StatsReport &)nativeReport;
+/** Initialize an RTCLegacyStatsReport object from a native StatsReport. */
+- (instancetype)initWithNativeReport:(const webrtc::StatsReport &)nativeReport;
 
 @end
 

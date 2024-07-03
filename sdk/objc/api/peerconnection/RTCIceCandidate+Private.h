@@ -16,14 +16,13 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RTC_OBJC_TYPE (RTCIceCandidate)
-()
+@interface RTCIceCandidate ()
 
-    /**
-     * The native IceCandidateInterface representation of this RTCIceCandidate
-     * object. This is needed to pass to the underlying C++ APIs.
-     */
-    @property(nonatomic, readonly) std::unique_ptr<webrtc::IceCandidateInterface> nativeCandidate;
+/**
+ * The native IceCandidateInterface representation of this RTCIceCandidate
+ * object. This is needed to pass to the underlying C++ APIs.
+ */
+@property(nonatomic, readonly) std::unique_ptr<webrtc::IceCandidateInterface> nativeCandidate;
 
 /**
  * Initialize an RTCIceCandidate from a native IceCandidateInterface. No

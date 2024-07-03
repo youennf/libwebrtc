@@ -11,30 +11,28 @@
 #ifndef SDK_OBJC_NATIVE_SRC_OBJC_VIDEO_DECODER_FACTORY_H_
 #define SDK_OBJC_NATIVE_SRC_OBJC_VIDEO_DECODER_FACTORY_H_
 
-#import "base/RTCMacros.h"
-
-#include "api/environment/environment.h"
 #include "api/video_codecs/video_decoder_factory.h"
 #include "media/base/codec.h"
 
-@protocol RTC_OBJC_TYPE
-(RTCVideoDecoderFactory);
+@protocol RTCVideoDecoderFactory;
 
 namespace webrtc {
 
 class ObjCVideoDecoderFactory : public VideoDecoderFactory {
  public:
-  explicit ObjCVideoDecoderFactory(id<RTC_OBJC_TYPE(RTCVideoDecoderFactory)>);
+  explicit ObjCVideoDecoderFactory(id<RTCVideoDecoderFactory>);
   ~ObjCVideoDecoderFactory() override;
 
-  id<RTC_OBJC_TYPE(RTCVideoDecoderFactory)> wrapped_decoder_factory() const;
+  id<RTCVideoDecoderFactory> wrapped_decoder_factory() const;
 
   std::vector<SdpVideoFormat> GetSupportedFormats() const override;
-  std::unique_ptr<VideoDecoder> Create(const Environment& env,
-                                       const SdpVideoFormat& format) override;
+  std::unique_ptr<VideoDecoder> Create(
+      const Environment& environment,
+      const SdpVideoFormat& format) override;
+  CodecSupport QueryCodecSupport(const SdpVideoFormat&, bool reference_scaling) const final;
 
  private:
-  id<RTC_OBJC_TYPE(RTCVideoDecoderFactory)> decoder_factory_;
+  id<RTCVideoDecoderFactory> decoder_factory_;
 };
 
 }  // namespace webrtc

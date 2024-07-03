@@ -17,9 +17,9 @@
 #include "media/base/adapted_video_track_source.h"
 #include "rtc_base/timestamp_aligner.h"
 
-RTC_FWD_DECL_OBJC_CLASS(RTC_OBJC_TYPE(RTCVideoFrame));
+RTC_FWD_DECL_OBJC_CLASS(RTCVideoFrame);
 
-@interface RTCObjCVideoSourceAdapter : NSObject <RTC_OBJC_TYPE (RTCVideoCapturerDelegate)>
+@interface RTCObjCVideoSourceAdapter : NSObject<RTCVideoCapturerDelegate>
 @end
 
 namespace webrtc {
@@ -27,9 +27,10 @@ namespace webrtc {
 class ObjCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
  public:
   ObjCVideoTrackSource();
-  explicit ObjCVideoTrackSource(bool is_screencast);
   explicit ObjCVideoTrackSource(RTCObjCVideoSourceAdapter* adapter);
 
+  // This class can not be used for implementing screen casting. Hopefully, this
+  // function will be removed before we add that to iOS/Mac.
   bool is_screencast() const override;
 
   // Indicates that the encoder should denoise video before encoding it.
@@ -41,7 +42,7 @@ class ObjCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
 
   bool remote() const override;
 
-  void OnCapturedFrame(RTC_OBJC_TYPE(RTCVideoFrame) * frame);
+  void OnCapturedFrame(RTCVideoFrame* frame);
 
   // Called by RTCVideoSource.
   void OnOutputFormatRequest(int width, int height, int fps);
@@ -51,7 +52,6 @@ class ObjCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
   rtc::TimestampAligner timestamp_aligner_;
 
   RTCObjCVideoSourceAdapter* adapter_;
-  bool is_screencast_;
 };
 
 }  // namespace webrtc

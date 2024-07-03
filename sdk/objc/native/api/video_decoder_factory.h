@@ -13,13 +13,14 @@
 
 #include <memory>
 
-#include "api/video_codecs/video_decoder_factory.h"
 #import "base/RTCVideoDecoderFactory.h"
+
+#include "api/video_codecs/video_decoder_factory.h"
 
 namespace webrtc {
 
 std::unique_ptr<VideoDecoderFactory> ObjCToNativeVideoDecoderFactory(
-    id<RTC_OBJC_TYPE(RTCVideoDecoderFactory)> objc_video_decoder_factory);
+    id<RTCVideoDecoderFactory> objc_video_decoder_factory);
 
 }  // namespace webrtc
 

@@ -14,12 +14,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RTC_OBJC_TYPE (RTCPeerConnectionFactoryOptions)
-()
+@interface RTCPeerConnectionFactoryOptions ()
 
-    /** Returns the equivalent native PeerConnectionFactoryInterface::Options
-     * structure. */
-    @property(nonatomic, readonly) webrtc::PeerConnectionFactoryInterface::Options nativeOptions;
+/** Returns the equivalent native PeerConnectionFactoryInterface::Options
+ * structure. */
+@property(nonatomic, readonly)
+    webrtc::PeerConnectionFactoryInterface::Options nativeOptions;
 
 @end
 

@@ -13,10 +13,8 @@
 #import "base/RTCLogging.h"
 #import "base/RTCVideoFrameBuffer.h"
 #import "components/video_frame_buffer/RTCCVPixelBuffer.h"
-#include "rtc_base/system/gcd_helpers.h"
 
-NSString *const kRTCFileVideoCapturerErrorDomain =
-    @"org.webrtc.RTC_OBJC_TYPE(RTCFileVideoCapturer)";
+NSString *const kRTCFileVideoCapturerErrorDomain = @"org.webrtc.RTCFileVideoCapturer";
 
 typedef NS_ENUM(NSInteger, RTCFileVideoCapturerErrorCode) {
   RTCFileVideoCapturerErrorCode_CapturerRunning = 2000,
@@ -29,12 +27,12 @@ typedef NS_ENUM(NSInteger, RTCFileVideoCapturerStatus) {
   RTCFileVideoCapturerStatusStopped
 };
 
-@interface RTC_OBJC_TYPE (RTCFileVideoCapturer)
-() @property(nonatomic, assign) CMTime lastPresentationTime;
+@interface RTCFileVideoCapturer ()
+@property(nonatomic, assign) CMTime lastPresentationTime;
 @property(nonatomic, strong) NSURL *fileURL;
 @end
 
-@implementation RTC_OBJC_TYPE (RTCFileVideoCapturer) {
+@implementation RTCFileVideoCapturer {
   AVAssetReader *_reader;
   AVAssetReaderTrackOutput *_outTrack;
   RTCFileVideoCapturerStatus _status;
@@ -120,10 +118,9 @@ typedef NS_ENUM(NSInteger, RTCFileVideoCapturerStatus) {
 
 - (dispatch_queue_t)frameQueue {
   if (!_frameQueue) {
-    _frameQueue = RTCDispatchQueueCreateWithTarget(
-        "org.webrtc.filecapturer.video",
-        DISPATCH_QUEUE_SERIAL,
-        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0));
+    _frameQueue = dispatch_queue_create("org.webrtc.filecapturer.video", DISPATCH_QUEUE_SERIAL);
+    dispatch_set_target_queue(_frameQueue,
+                              dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0));
   }
   return _frameQueue;
 }
@@ -165,7 +162,7 @@ typedef NS_ENUM(NSInteger, RTCFileVideoCapturerStatus) {
   int64_t presentationDifferenceRound = lroundf(presentationDifference * NSEC_PER_SEC);
 
   __block dispatch_source_t timer = [self createStrictTimer];
-  // Strict timer that will fire `presentationDifferenceRound` ns from now and never again.
+  // Strict timer that will fire |presentationDifferenceRound| ns from now and never again.
   dispatch_source_set_timer(timer,
                             dispatch_time(DISPATCH_TIME_NOW, presentationDifferenceRound),
                             DISPATCH_TIME_FOREVER,
@@ -183,14 +180,11 @@ typedef NS_ENUM(NSInteger, RTCFileVideoCapturerStatus) {
       return;
     }
 
-    RTC_OBJC_TYPE(RTCCVPixelBuffer) *rtcPixelBuffer =
-        [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc] initWithPixelBuffer:pixelBuffer];
+    RTCCVPixelBuffer *rtcPixelBuffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBuffer];
     NSTimeInterval timeStampSeconds = CACurrentMediaTime();
     int64_t timeStampNs = lroundf(timeStampSeconds * NSEC_PER_SEC);
-    RTC_OBJC_TYPE(RTCVideoFrame) *videoFrame =
-        [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:rtcPixelBuffer
-                                                    rotation:0
-                                                 timeStampNs:timeStampNs];
+    RTCVideoFrame *videoFrame =
+        [[RTCVideoFrame alloc] initWithBuffer:rtcPixelBuffer rotation:0 timeStampNs:timeStampNs];
     CFRelease(sampleBuffer);
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{

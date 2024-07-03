@@ -9,7 +9,6 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <XCTest/XCTest.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,52 +20,77 @@ extern "C" {
 #import "api/peerconnection/RTCPeerConnectionFactoryBuilder+DefaultComponents.h"
 #import "api/peerconnection/RTCPeerConnectionFactoryBuilder.h"
 
-#include "api/audio/audio_device.h"
-#include "api/audio/audio_processing.h"
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
 #include "api/audio_codecs/builtin_audio_encoder_factory.h"
+#include "api/transport/media/media_transport_interface.h"
 #include "api/video_codecs/video_decoder_factory.h"
 #include "api/video_codecs/video_encoder_factory.h"
+#include "modules/audio_device/include/audio_device.h"
+#include "modules/audio_processing/include/audio_processing.h"
 
 #include "rtc_base/gunit.h"
 #include "rtc_base/system/unused.h"
 
-@interface RTCPeerConnectionFactoryBuilderTests : XCTestCase
+@interface RTCPeerConnectionFactoryBuilderTest : NSObject
+- (void)testBuilder;
+- (void)testDefaultComponentsBuilder;
 @end
 
-@implementation RTCPeerConnectionFactoryBuilderTests
+@implementation RTCPeerConnectionFactoryBuilderTest
 
 - (void)testBuilder {
-  id factoryMock = OCMStrictClassMock([RTC_OBJC_TYPE(RTCPeerConnectionFactory) class]);
+  id factoryMock = OCMStrictClassMock([RTCPeerConnectionFactory class]);
   OCMExpect([factoryMock alloc]).andReturn(factoryMock);
+#ifdef HAVE_NO_MEDIA
+  RTC_UNUSED([[[factoryMock expect] andReturn:factoryMock] initWithNoMedia]);
+#else
   RTC_UNUSED([[[[factoryMock expect] andReturn:factoryMock] ignoringNonObjectArgs]
       initWithNativeAudioEncoderFactory:nullptr
               nativeAudioDecoderFactory:nullptr
               nativeVideoEncoderFactory:nullptr
               nativeVideoDecoderFactory:nullptr
                       audioDeviceModule:nullptr
-                  audioProcessingModule:nullptr]);
+                  audioProcessingModule:nullptr
+                  mediaTransportFactory:nullptr]);
+#endif
   RTCPeerConnectionFactoryBuilder* builder = [[RTCPeerConnectionFactoryBuilder alloc] init];
-  RTC_OBJC_TYPE(RTCPeerConnectionFactory)* peerConnectionFactory =
-      [builder createPeerConnectionFactory];
+  RTCPeerConnectionFactory* peerConnectionFactory = [builder createPeerConnectionFactory];
   EXPECT_TRUE(peerConnectionFactory != nil);
   OCMVerifyAll(factoryMock);
 }
 
 - (void)testDefaultComponentsBuilder {
-  id factoryMock = OCMStrictClassMock([RTC_OBJC_TYPE(RTCPeerConnectionFactory) class]);
+  id factoryMock = OCMStrictClassMock([RTCPeerConnectionFactory class]);
   OCMExpect([factoryMock alloc]).andReturn(factoryMock);
+#ifdef HAVE_NO_MEDIA
+  RTC_UNUSED([[[factoryMock expect] andReturn:factoryMock] initWithNoMedia]);
+#else
   RTC_UNUSED([[[[factoryMock expect] andReturn:factoryMock] ignoringNonObjectArgs]
       initWithNativeAudioEncoderFactory:nullptr
               nativeAudioDecoderFactory:nullptr
               nativeVideoEncoderFactory:nullptr
               nativeVideoDecoderFactory:nullptr
                       audioDeviceModule:nullptr
-                  audioProcessingModule:nullptr]);
+                  audioProcessingModule:nullptr
+                  mediaTransportFactory:nullptr]);
+#endif
   RTCPeerConnectionFactoryBuilder* builder = [RTCPeerConnectionFactoryBuilder defaultBuilder];
-  RTC_OBJC_TYPE(RTCPeerConnectionFactory)* peerConnectionFactory =
-      [builder createPeerConnectionFactory];
+  RTCPeerConnectionFactory* peerConnectionFactory = [builder createPeerConnectionFactory];
   EXPECT_TRUE(peerConnectionFactory != nil);
   OCMVerifyAll(factoryMock);
 }
 @end
+
+TEST(RTCPeerConnectionFactoryBuilderTest, BuilderTest) {
+  @autoreleasepool {
+    RTCPeerConnectionFactoryBuilderTest* test = [[RTCPeerConnectionFactoryBuilderTest alloc] init];
+    [test testBuilder];
+  }
+}
+
+TEST(RTCPeerConnectionFactoryBuilderTest, DefaultComponentsBuilderTest) {
+  @autoreleasepool {
+    RTCPeerConnectionFactoryBuilderTest* test = [[RTCPeerConnectionFactoryBuilderTest alloc] init];
+    [test testDefaultComponentsBuilder];
+  }
+}
