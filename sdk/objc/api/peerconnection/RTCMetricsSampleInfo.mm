@@ -12,7 +12,7 @@
 
 #import "helpers/NSString+StdString.h"
 
-@implementation RTC_OBJC_TYPE (RTCMetricsSampleInfo)
+@implementation RTCMetricsSampleInfo
 
 @synthesize name = _name;
 @synthesize min = _min;

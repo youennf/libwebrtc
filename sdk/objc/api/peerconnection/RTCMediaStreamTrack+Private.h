@@ -19,13 +19,11 @@ typedef NS_ENUM(NSInteger, RTCMediaStreamTrackType) {
 
 NS_ASSUME_NONNULL_BEGIN
 
-@class RTC_OBJC_TYPE(RTCPeerConnectionFactory);
+@class RTCPeerConnectionFactory;
 
-@interface RTC_OBJC_TYPE (RTCMediaStreamTrack)
-()
+@interface RTCMediaStreamTrack ()
 
-        @property(nonatomic, readonly) RTC_OBJC_TYPE(RTCPeerConnectionFactory) *
-    factory;
+@property(nonatomic, readonly) RTCPeerConnectionFactory *factory;
 
 /**
  * The native MediaStreamTrackInterface passed in or created during
@@ -36,26 +34,26 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  * Initialize an RTCMediaStreamTrack from a native MediaStreamTrackInterface.
  */
-- (instancetype)initWithFactory:(RTC_OBJC_TYPE(RTCPeerConnectionFactory) *)factory
+- (instancetype)initWithFactory:(RTCPeerConnectionFactory *)factory
                     nativeTrack:(rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>)nativeTrack
                            type:(RTCMediaStreamTrackType)type NS_DESIGNATED_INITIALIZER;
 
-- (instancetype)initWithFactory:(RTC_OBJC_TYPE(RTCPeerConnectionFactory) *)factory
+- (instancetype)initWithFactory:(RTCPeerConnectionFactory *)factory
                     nativeTrack:(rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>)nativeTrack;
 
-- (BOOL)isEqualToTrack:(RTC_OBJC_TYPE(RTCMediaStreamTrack) *)track;
+- (BOOL)isEqualToTrack:(RTCMediaStreamTrack *)track;
 
 + (webrtc::MediaStreamTrackInterface::TrackState)nativeTrackStateForState:
-    (RTCMediaStreamTrackState)state;
+        (RTCMediaStreamTrackState)state;
 
 + (RTCMediaStreamTrackState)trackStateForNativeState:
-    (webrtc::MediaStreamTrackInterface::TrackState)nativeState;
+        (webrtc::MediaStreamTrackInterface::TrackState)nativeState;
 
 + (NSString *)stringForState:(RTCMediaStreamTrackState)state;
 
-+ (RTC_OBJC_TYPE(RTCMediaStreamTrack) *)
-    mediaTrackForNativeTrack:(rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>)nativeTrack
-                     factory:(RTC_OBJC_TYPE(RTCPeerConnectionFactory) *)factory;
++ (RTCMediaStreamTrack *)mediaTrackForNativeTrack:
+                             (rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>)nativeTrack
+                                          factory:(RTCPeerConnectionFactory *)factory;
 
 @end
 

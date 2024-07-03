@@ -11,10 +11,8 @@
 #ifndef SDK_OBJC_NATIVE_API_VIDEO_CAPTURER_H_
 #define SDK_OBJC_NATIVE_API_VIDEO_CAPTURER_H_
 
-// import
 #import "base/RTCVideoCapturer.h"
 
-// include
 #include "api/media_stream_interface.h"
 #include "api/scoped_refptr.h"
 #include "rtc_base/thread.h"
@@ -22,7 +20,7 @@
 namespace webrtc {
 
 rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> ObjCToNativeVideoCapturer(
-    RTC_OBJC_TYPE(RTCVideoCapturer) * objc_video_capturer,
+    RTCVideoCapturer* objc_video_capturer,
     rtc::Thread* signaling_thread,
     rtc::Thread* worker_thread);
 

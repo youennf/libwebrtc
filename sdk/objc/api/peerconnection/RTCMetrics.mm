@@ -12,22 +12,20 @@
 
 #import "RTCMetricsSampleInfo+Private.h"
 
-#include "rtc_base/string_utils.h"
-
 void RTCEnableMetrics(void) {
   webrtc::metrics::Enable();
 }
 
-NSArray<RTC_OBJC_TYPE(RTCMetricsSampleInfo) *> *RTCGetAndResetMetrics(void) {
-  std::map<std::string, std::unique_ptr<webrtc::metrics::SampleInfo>, rtc::AbslStringViewCmp>
+NSArray<RTCMetricsSampleInfo *> *RTCGetAndResetMetrics(void) {
+  std::map<std::string, std::unique_ptr<webrtc::metrics::SampleInfo>>
       histograms;
   webrtc::metrics::GetAndReset(&histograms);
 
   NSMutableArray *metrics =
       [NSMutableArray arrayWithCapacity:histograms.size()];
   for (auto const &histogram : histograms) {
-    RTC_OBJC_TYPE(RTCMetricsSampleInfo) *metric =
-        [[RTC_OBJC_TYPE(RTCMetricsSampleInfo) alloc] initWithNativeSampleInfo:*histogram.second];
+    RTCMetricsSampleInfo *metric = [[RTCMetricsSampleInfo alloc]
+        initWithNativeSampleInfo:*histogram.second];
     [metrics addObject:metric];
   }
   return metrics;

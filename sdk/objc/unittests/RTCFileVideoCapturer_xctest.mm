@@ -17,7 +17,7 @@
 NSString *const kTestFileName = @"foreman.mp4";
 static const int kTestTimeoutMs = 5 * 1000;  // 5secs.
 
-@interface MockCapturerDelegate : NSObject <RTC_OBJC_TYPE (RTCVideoCapturerDelegate)>
+@interface MockCapturerDelegate : NSObject <RTCVideoCapturerDelegate>
 
 @property(nonatomic, assign) NSInteger capturedFramesCount;
 
@@ -26,8 +26,7 @@ static const int kTestTimeoutMs = 5 * 1000;  // 5secs.
 @implementation MockCapturerDelegate
 @synthesize capturedFramesCount = _capturedFramesCount;
 
-- (void)capturer:(RTC_OBJC_TYPE(RTCVideoCapturer) *)capturer
-    didCaptureVideoFrame:(RTC_OBJC_TYPE(RTCVideoFrame) *)frame {
+- (void)capturer:(RTCVideoCapturer *)capturer didCaptureVideoFrame:(RTCVideoFrame *)frame {
   self.capturedFramesCount++;
 }
 
@@ -36,7 +35,7 @@ static const int kTestTimeoutMs = 5 * 1000;  // 5secs.
 NS_CLASS_AVAILABLE_IOS(10)
 @interface RTCFileVideoCapturerTests : XCTestCase
 
-@property(nonatomic, strong) RTC_OBJC_TYPE(RTCFileVideoCapturer) * capturer;
+@property(nonatomic, strong) RTCFileVideoCapturer *capturer;
 @property(nonatomic, strong) MockCapturerDelegate *mockDelegate;
 
 @end
@@ -47,7 +46,7 @@ NS_CLASS_AVAILABLE_IOS(10)
 
 - (void)setUp {
   self.mockDelegate = [[MockCapturerDelegate alloc] init];
-  self.capturer = [[RTC_OBJC_TYPE(RTCFileVideoCapturer) alloc] initWithDelegate:self.mockDelegate];
+  self.capturer = [[RTCFileVideoCapturer alloc] initWithDelegate:self.mockDelegate];
 }
 
 - (void)tearDown {

@@ -11,29 +11,17 @@
 
 #import <Foundation/Foundation.h>
 
-#import "RTCMacros.h"
-#import "RTCNativeVideoDecoder.h"
-#import "RTCNativeVideoDecoderBuilder+Native.h"
 #import "RTCVideoDecoderVP8.h"
+#import "RTCWrappedNativeVideoDecoder.h"
 
+#include "api/environment/environment_factory.h"
 #include "modules/video_coding/codecs/vp8/include/vp8.h"
 
-@interface RTC_OBJC_TYPE (RTCVideoDecoderVP8Builder)
-    : RTC_OBJC_TYPE(RTCNativeVideoDecoder) <RTC_OBJC_TYPE (RTCNativeVideoDecoderBuilder)>
+@implementation RTCVideoDecoderVP8
+
++ (id<RTCVideoDecoder>)vp8Decoder {
+  return [[RTCWrappedNativeVideoDecoder alloc]
+          initWithNativeDecoder:std::unique_ptr<webrtc::VideoDecoder>(webrtc::CreateVp8Decoder(webrtc::EnvironmentFactory().Create()))];
+}
+
 @end
-
-    @implementation RTC_OBJC_TYPE (RTCVideoDecoderVP8Builder)
-
-    - (std::unique_ptr<webrtc::VideoDecoder>)build:(const webrtc::Environment&)env {
-      return webrtc::CreateVp8Decoder(env);
-    }
-
-    @end
-
-    @implementation RTC_OBJC_TYPE (RTCVideoDecoderVP8)
-
-    + (id<RTC_OBJC_TYPE(RTCVideoDecoder)>)vp8Decoder {
-      return [[RTC_OBJC_TYPE(RTCVideoDecoderVP8Builder) alloc] init];
-    }
-
-    @end

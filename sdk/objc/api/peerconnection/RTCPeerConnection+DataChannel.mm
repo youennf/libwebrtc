@@ -14,21 +14,20 @@
 #import "RTCDataChannelConfiguration+Private.h"
 #import "helpers/NSString+StdString.h"
 
-@implementation RTC_OBJC_TYPE (RTCPeerConnection)
-(DataChannel)
+@implementation RTCPeerConnection (DataChannel)
 
-    - (nullable RTC_OBJC_TYPE(RTCDataChannel) *)dataChannelForLabel
-    : (NSString *)label configuration
-    : (RTC_OBJC_TYPE(RTCDataChannelConfiguration) *)configuration {
+- (nullable RTCDataChannel *)dataChannelForLabel:(NSString *)label
+                                   configuration:(RTCDataChannelConfiguration *)configuration {
   std::string labelString = [NSString stdStringForString:label];
   const webrtc::DataChannelInit nativeInit =
       configuration.nativeDataChannelInit;
-  auto result = self.nativePeerConnection->CreateDataChannelOrError(labelString, &nativeInit);
-  if (!result.ok()) {
+  rtc::scoped_refptr<webrtc::DataChannelInterface> dataChannel =
+      self.nativePeerConnection->CreateDataChannel(labelString,
+                                                   &nativeInit);
+  if (!dataChannel) {
     return nil;
   }
-  return [[RTC_OBJC_TYPE(RTCDataChannel) alloc] initWithFactory:self.factory
-                                              nativeDataChannel:result.MoveValue()];
+  return [[RTCDataChannel alloc] initWithFactory:self.factory nativeDataChannel:dataChannel];
 }
 
 @end

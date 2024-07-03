@@ -22,7 +22,7 @@
 #import <VideoToolbox/VideoToolbox.h>
 #endif
 
-@implementation RTC_OBJC_TYPE (RTCCVPixelBuffer) {
+@implementation RTCCVPixelBuffer {
   int _width;
   int _height;
   int _bufferWidth;
@@ -146,36 +146,19 @@
       [self cropAndScaleARGBTo:outputPixelBuffer];
       break;
     }
-    default: {
-      RTC_DCHECK_NOTREACHED() << "Unsupported pixel format.";
-    }
+    default: { RTC_DCHECK_NOTREACHED() << "Unsupported pixel format."; }
   }
 
   return YES;
 }
-- (id<RTC_OBJC_TYPE(RTCVideoFrameBuffer)>)cropAndScaleWith:(int)offsetX
-                                                   offsetY:(int)offsetY
-                                                 cropWidth:(int)cropWidth
-                                                cropHeight:(int)cropHeight
-                                                scaleWidth:(int)scaleWidth
-                                               scaleHeight:(int)scaleHeight {
-  return [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc]
-      initWithPixelBuffer:_pixelBuffer
-             adaptedWidth:scaleWidth
-            adaptedHeight:scaleHeight
-                cropWidth:cropWidth * _cropWidth / _width
-               cropHeight:cropHeight * _cropHeight / _height
-                    cropX:_cropX + offsetX * _cropWidth / _width
-                    cropY:_cropY + offsetY * _cropHeight / _height];
-}
 
-- (id<RTC_OBJC_TYPE(RTCI420Buffer)>)toI420 {
+- (id<RTCI420Buffer>)toI420 {
   const OSType pixelFormat = CVPixelBufferGetPixelFormatType(_pixelBuffer);
 
   CVPixelBufferLockBaseAddress(_pixelBuffer, kCVPixelBufferLock_ReadOnly);
 
-  RTC_OBJC_TYPE(RTCMutableI420Buffer)* i420Buffer =
-      [[RTC_OBJC_TYPE(RTCMutableI420Buffer) alloc] initWithWidth:[self width] height:[self height]];
+  RTCMutableI420Buffer* i420Buffer =
+      [[RTCMutableI420Buffer alloc] initWithWidth:[self width] height:[self height]];
 
   switch (pixelFormat) {
     case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
@@ -190,6 +173,25 @@
       // Crop just by modifying pointers.
       srcY += srcYStride * _cropY + _cropX;
       srcUV += srcUVStride * (_cropY / 2) + _cropX;
+
+#if defined(WEBRTC_WEBKIT_BUILD)
+      auto srcWidthY = CVPixelBufferGetWidthOfPlane(_pixelBuffer, 0);
+      auto srcHeightY = CVPixelBufferGetHeightOfPlane(_pixelBuffer, 0);
+      auto srcWidthUV = CVPixelBufferGetWidthOfPlane(_pixelBuffer, 1);
+      auto srcHeightUV = CVPixelBufferGetHeightOfPlane(_pixelBuffer, 1);
+
+      auto destWidthY = i420Buffer.width;
+      auto destHeightY = i420Buffer.height;
+      auto destWidthUV = i420Buffer.chromaWidth;
+      auto destHeightUV = i420Buffer.chromaHeight;
+
+      RTC_DCHECK(srcWidthUV && srcWidthUV == destWidthUV && srcHeightUV && srcHeightUV == destHeightUV && srcWidthY == destWidthY && srcHeightY == destHeightY);
+      if (![self requiresCropping] && (!srcWidthUV || srcWidthUV != destWidthUV || !srcHeightUV || srcHeightUV != destHeightUV || srcWidthY != destWidthY || srcHeightY != destHeightY)) {
+        RTC_LOG(LS_ERROR) << "RTCI420Buffer toI420 bad size: " << srcWidthY << " x " << srcHeightY;
+        CVPixelBufferUnlockBaseAddress(_pixelBuffer, kCVPixelBufferLock_ReadOnly);
+        return nullptr;
+      }
+#endif // defined(WEBRTC_WEBKIT_BUILD)
 
       // TODO(magjed): Use a frame buffer pool.
       webrtc::NV12ToI420Scaler nv12ToI420Scaler;
@@ -259,9 +261,7 @@
       }
       break;
     }
-    default: {
-      RTC_DCHECK_NOTREACHED() << "Unsupported pixel format.";
-    }
+    default: { RTC_DCHECK_NOTREACHED() << "Unsupported pixel format."; }
   }
 
   CVPixelBufferUnlockBaseAddress(_pixelBuffer, kCVPixelBufferLock_ReadOnly);
@@ -363,5 +363,12 @@
   CVPixelBufferUnlockBaseAddress(_pixelBuffer, kCVPixelBufferLock_ReadOnly);
   CVPixelBufferUnlockBaseAddress(outputPixelBuffer, 0);
 }
+
+#if defined(WEBRTC_WEBKIT_BUILD)
+- (void)close {
+    CVBufferRelease(_pixelBuffer);
+    _pixelBuffer = nil;
+}
+#endif
 
 @end

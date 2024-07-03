@@ -10,29 +10,20 @@
 
 #import "RTCCallbackLogger.h"
 
-#import "helpers/NSString+StdString.h"
-
 #include <memory>
 
-#include "absl/strings/string_view.h"
 #include "rtc_base/checks.h"
 #include "rtc_base/log_sinks.h"
 #include "rtc_base/logging.h"
 
-namespace {
-
-class CallbackLogSink final : public rtc::LogSink {
+class CallbackLogSink : public rtc::LogSink {
  public:
   CallbackLogSink(RTCCallbackLoggerMessageHandler callbackHandler)
       : callback_handler_(callbackHandler) {}
 
-  void OnLogMessage(const std::string& message) override {
-    OnLogMessage(absl::string_view(message));
-  }
-
-  void OnLogMessage(absl::string_view message) override {
+  void OnLogMessage(const std::string &message) override {
     if (callback_handler_) {
-      callback_handler_([NSString stringForAbslStringView:message]);
+      callback_handler_([NSString stringWithUTF8String:message.c_str()]);
     }
   }
 
@@ -40,21 +31,17 @@ class CallbackLogSink final : public rtc::LogSink {
   RTCCallbackLoggerMessageHandler callback_handler_;
 };
 
-class CallbackWithSeverityLogSink final : public rtc::LogSink {
+class CallbackWithSeverityLogSink : public rtc::LogSink {
  public:
   CallbackWithSeverityLogSink(RTCCallbackLoggerMessageAndSeverityHandler callbackHandler)
       : callback_handler_(callbackHandler) {}
 
-  void OnLogMessage(const std::string& message) override { RTC_DCHECK_NOTREACHED(); }
+  void OnLogMessage(const std::string& message) override { RTC_NOTREACHED(); }
 
   void OnLogMessage(const std::string& message, rtc::LoggingSeverity severity) override {
-    OnLogMessage(absl::string_view(message), severity);
-  }
-
-  void OnLogMessage(absl::string_view message, rtc::LoggingSeverity severity) override {
     if (callback_handler_) {
       RTCLoggingSeverity loggingSeverity = NativeSeverityToObjcSeverity(severity);
-      callback_handler_([NSString stringForAbslStringView:message], loggingSeverity);
+      callback_handler_([NSString stringWithUTF8String:message.c_str()], loggingSeverity);
     }
   }
 
@@ -77,9 +64,7 @@ class CallbackWithSeverityLogSink final : public rtc::LogSink {
   RTCCallbackLoggerMessageAndSeverityHandler callback_handler_;
 };
 
-}
-
-@implementation RTC_OBJC_TYPE (RTCCallbackLogger) {
+@implementation RTCCallbackLogger {
   BOOL _hasStarted;
   std::unique_ptr<rtc::LogSink> _logSink;
 }

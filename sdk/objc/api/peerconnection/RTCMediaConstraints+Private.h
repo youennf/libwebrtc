@@ -16,14 +16,13 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RTC_OBJC_TYPE (RTCMediaConstraints)
-()
+@interface RTCMediaConstraints ()
 
-    /**
-     * A MediaConstraints representation of this RTCMediaConstraints object. This is
-     * needed to pass to the underlying C++ APIs.
-     */
-    - (std::unique_ptr<webrtc::MediaConstraints>)nativeConstraints;
+/**
+ * A MediaConstraints representation of this RTCMediaConstraints object. This is
+ * needed to pass to the underlying C++ APIs.
+ */
+- (std::unique_ptr<webrtc::MediaConstraints>)nativeConstraints;
 
 /** Return a native Constraints object representing these constraints */
 + (webrtc::MediaConstraints::Constraints)nativeConstraintsForConstraints:

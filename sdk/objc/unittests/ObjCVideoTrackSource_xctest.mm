@@ -22,9 +22,10 @@
 #include "api/scoped_refptr.h"
 #include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "media/base/fake_video_renderer.h"
+#include "rtc_base/ref_counted_object.h"
 #include "sdk/objc/native/api/video_frame.h"
 
-typedef void (^VideoSinkCallback)(RTC_OBJC_TYPE(RTCVideoFrame) *);
+typedef void (^VideoSinkCallback)(RTCVideoFrame *);
 
 namespace {
 
@@ -50,7 +51,7 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
 }
 
 - (void)setUp {
-  _video_source = rtc::make_ref_counted<webrtc::ObjCVideoTrackSource>();
+  _video_source = new rtc::RefCountedObject<webrtc::ObjCVideoTrackSource>();
 }
 
 - (void)tearDown {
@@ -62,17 +63,14 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   CVPixelBufferCreate(
       NULL, 720, 1280, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, NULL, &pixelBufferRef);
 
-  RTC_OBJC_TYPE(RTCCVPixelBuffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc] initWithPixelBuffer:pixelBufferRef];
+  RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBufferRef];
 
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCVideoFrame *frame =
+      [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
 
   cricket::FakeVideoRenderer *video_renderer = new cricket::FakeVideoRenderer();
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(video_renderer, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(640, 360, 30);
@@ -94,17 +92,14 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   CVPixelBufferCreate(
       NULL, 720, 1280, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, NULL, &pixelBufferRef);
 
-  RTC_OBJC_TYPE(RTCCVPixelBuffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc] initWithPixelBuffer:pixelBufferRef];
+  RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBufferRef];
 
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCVideoFrame *frame =
+      [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
 
   cricket::FakeVideoRenderer *video_renderer = new cricket::FakeVideoRenderer();
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(video_renderer, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(912, 514, 30);
@@ -124,17 +119,15 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   CVPixelBufferCreate(
       NULL, 720, 1280, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, NULL, &pixelBufferRef);
 
-  RTC_OBJC_TYPE(RTCCVPixelBuffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc] initWithPixelBuffer:pixelBufferRef];
+  RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBufferRef];
 
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCVideoFrame *frame = [[RTCVideoFrame alloc] initWithBuffer:buffer
+                                                      rotation:RTCVideoRotation_0
+                                                   timeStampNs:0];
 
   cricket::FakeVideoRenderer *video_renderer = new cricket::FakeVideoRenderer();
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(video_renderer, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(640, 360, 30);
@@ -166,19 +159,16 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   CVPixelBufferCreate(
       NULL, 360, 640, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, NULL, &pixelBufferRef);
 
-  RTC_OBJC_TYPE(RTCCVPixelBuffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc] initWithPixelBuffer:pixelBufferRef];
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBufferRef];
+  RTCVideoFrame *frame =
+      [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
 
   XCTestExpectation *callbackExpectation = [self expectationWithDescription:@"videoSinkCallback"];
-  ObjCCallbackVideoSink callback_video_sink(^void(RTC_OBJC_TYPE(RTCVideoFrame) * outputFrame) {
+  ObjCCallbackVideoSink callback_video_sink(^void(RTCVideoFrame *outputFrame) {
     XCTAssertEqual(frame.width, outputFrame.width);
     XCTAssertEqual(frame.height, outputFrame.height);
 
-    RTC_OBJC_TYPE(RTCCVPixelBuffer) *outputBuffer = outputFrame.buffer;
+    RTCCVPixelBuffer *outputBuffer = outputFrame.buffer;
     XCTAssertEqual(buffer.cropX, outputBuffer.cropX);
     XCTAssertEqual(buffer.cropY, outputBuffer.cropY);
     XCTAssertEqual(buffer.pixelBuffer, outputBuffer.pixelBuffer);
@@ -187,7 +177,7 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   });
 
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(&callback_video_sink, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(640, 360, 30);
@@ -202,19 +192,16 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   CVPixelBufferCreate(
       NULL, 720, 1280, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, NULL, &pixelBufferRef);
 
-  RTC_OBJC_TYPE(RTCCVPixelBuffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc] initWithPixelBuffer:pixelBufferRef];
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBufferRef];
+  RTCVideoFrame *frame =
+      [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
 
   XCTestExpectation *callbackExpectation = [self expectationWithDescription:@"videoSinkCallback"];
-  ObjCCallbackVideoSink callback_video_sink(^void(RTC_OBJC_TYPE(RTCVideoFrame) * outputFrame) {
+  ObjCCallbackVideoSink callback_video_sink(^void(RTCVideoFrame *outputFrame) {
     XCTAssertEqual(outputFrame.width, 360);
     XCTAssertEqual(outputFrame.height, 640);
 
-    RTC_OBJC_TYPE(RTCCVPixelBuffer) *outputBuffer = outputFrame.buffer;
+    RTCCVPixelBuffer *outputBuffer = outputFrame.buffer;
     XCTAssertEqual(outputBuffer.cropX, 0);
     XCTAssertEqual(outputBuffer.cropY, 0);
     XCTAssertEqual(buffer.pixelBuffer, outputBuffer.pixelBuffer);
@@ -223,7 +210,7 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   });
 
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(&callback_video_sink, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(640, 360, 30);
@@ -238,19 +225,16 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   CVPixelBufferCreate(
       NULL, 380, 640, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, NULL, &pixelBufferRef);
 
-  RTC_OBJC_TYPE(RTCCVPixelBuffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc] initWithPixelBuffer:pixelBufferRef];
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBufferRef];
+  RTCVideoFrame *frame =
+      [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
 
   XCTestExpectation *callbackExpectation = [self expectationWithDescription:@"videoSinkCallback"];
-  ObjCCallbackVideoSink callback_video_sink(^void(RTC_OBJC_TYPE(RTCVideoFrame) * outputFrame) {
+  ObjCCallbackVideoSink callback_video_sink(^void(RTCVideoFrame *outputFrame) {
     XCTAssertEqual(outputFrame.width, 360);
     XCTAssertEqual(outputFrame.height, 640);
 
-    RTC_OBJC_TYPE(RTCCVPixelBuffer) *outputBuffer = outputFrame.buffer;
+    RTCCVPixelBuffer *outputBuffer = outputFrame.buffer;
     XCTAssertEqual(outputBuffer.cropX, 10);
     XCTAssertEqual(outputBuffer.cropY, 0);
     XCTAssertEqual(buffer.pixelBuffer, outputBuffer.pixelBuffer);
@@ -259,7 +243,7 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   });
 
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(&callback_video_sink, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(640, 360, 30);
@@ -275,25 +259,22 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
       NULL, 720, 1280, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, NULL, &pixelBufferRef);
 
   // Create a frame that's already adapted down.
-  RTC_OBJC_TYPE(RTCCVPixelBuffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc] initWithPixelBuffer:pixelBufferRef
-                                                      adaptedWidth:640
-                                                     adaptedHeight:360
-                                                         cropWidth:720
-                                                        cropHeight:1280
-                                                             cropX:0
-                                                             cropY:0];
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBufferRef
+                                                              adaptedWidth:640
+                                                             adaptedHeight:360
+                                                                 cropWidth:720
+                                                                cropHeight:1280
+                                                                     cropX:0
+                                                                     cropY:0];
+  RTCVideoFrame *frame =
+      [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
 
   XCTestExpectation *callbackExpectation = [self expectationWithDescription:@"videoSinkCallback"];
-  ObjCCallbackVideoSink callback_video_sink(^void(RTC_OBJC_TYPE(RTCVideoFrame) * outputFrame) {
+  ObjCCallbackVideoSink callback_video_sink(^void(RTCVideoFrame *outputFrame) {
     XCTAssertEqual(outputFrame.width, 480);
     XCTAssertEqual(outputFrame.height, 270);
 
-    RTC_OBJC_TYPE(RTCCVPixelBuffer) *outputBuffer = outputFrame.buffer;
+    RTCCVPixelBuffer *outputBuffer = outputFrame.buffer;
     XCTAssertEqual(outputBuffer.cropX, 0);
     XCTAssertEqual(outputBuffer.cropY, 0);
     XCTAssertEqual(outputBuffer.cropWidth, 640);
@@ -304,7 +285,7 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   });
 
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(&callback_video_sink, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(480, 270, 30);
@@ -319,25 +300,22 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   CVPixelBufferCreate(
       NULL, 380, 640, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, NULL, &pixelBufferRef);
 
-  RTC_OBJC_TYPE(RTCCVPixelBuffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc] initWithPixelBuffer:pixelBufferRef
-                                                      adaptedWidth:370
-                                                     adaptedHeight:640
-                                                         cropWidth:370
-                                                        cropHeight:640
-                                                             cropX:10
-                                                             cropY:0];
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBufferRef
+                                                              adaptedWidth:370
+                                                             adaptedHeight:640
+                                                                 cropWidth:370
+                                                                cropHeight:640
+                                                                     cropX:10
+                                                                     cropY:0];
+  RTCVideoFrame *frame =
+      [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
 
   XCTestExpectation *callbackExpectation = [self expectationWithDescription:@"videoSinkCallback"];
-  ObjCCallbackVideoSink callback_video_sink(^void(RTC_OBJC_TYPE(RTCVideoFrame) * outputFrame) {
+  ObjCCallbackVideoSink callback_video_sink(^void(RTCVideoFrame *outputFrame) {
     XCTAssertEqual(outputFrame.width, 360);
     XCTAssertEqual(outputFrame.height, 640);
 
-    RTC_OBJC_TYPE(RTCCVPixelBuffer) *outputBuffer = outputFrame.buffer;
+    RTCCVPixelBuffer *outputBuffer = outputFrame.buffer;
     XCTAssertEqual(outputBuffer.cropX, 14);
     XCTAssertEqual(outputBuffer.cropY, 0);
     XCTAssertEqual(outputBuffer.cropWidth, 360);
@@ -348,7 +326,7 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   });
 
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(&callback_video_sink, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(640, 360, 30);
@@ -363,25 +341,22 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   CVPixelBufferCreate(
       NULL, 380, 640, kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, NULL, &pixelBufferRef);
 
-  RTC_OBJC_TYPE(RTCCVPixelBuffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc] initWithPixelBuffer:pixelBufferRef
-                                                      adaptedWidth:300
-                                                     adaptedHeight:640
-                                                         cropWidth:300
-                                                        cropHeight:640
-                                                             cropX:40
-                                                             cropY:0];
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCCVPixelBuffer *buffer = [[RTCCVPixelBuffer alloc] initWithPixelBuffer:pixelBufferRef
+                                                              adaptedWidth:300
+                                                             adaptedHeight:640
+                                                                 cropWidth:300
+                                                                cropHeight:640
+                                                                     cropX:40
+                                                                     cropY:0];
+  RTCVideoFrame *frame =
+      [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
 
   XCTestExpectation *callbackExpectation = [self expectationWithDescription:@"videoSinkCallback"];
-  ObjCCallbackVideoSink callback_video_sink(^void(RTC_OBJC_TYPE(RTCVideoFrame) * outputFrame) {
+  ObjCCallbackVideoSink callback_video_sink(^void(RTCVideoFrame *outputFrame) {
     XCTAssertEqual(outputFrame.width, 300);
     XCTAssertEqual(outputFrame.height, 534);
 
-    RTC_OBJC_TYPE(RTCCVPixelBuffer) *outputBuffer = outputFrame.buffer;
+    RTCCVPixelBuffer *outputBuffer = outputFrame.buffer;
     XCTAssertEqual(outputBuffer.cropX, 40);
     XCTAssertEqual(outputBuffer.cropY, 52);
     XCTAssertEqual(outputBuffer.cropWidth, 300);
@@ -392,7 +367,7 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   });
 
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(&callback_video_sink, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(640, 360, 30);
@@ -404,19 +379,16 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
 
 - (void)testOnCapturedFrameI420BufferNeedsAdaptation {
   rtc::scoped_refptr<webrtc::I420Buffer> i420Buffer = CreateI420Gradient(720, 1280);
-  RTC_OBJC_TYPE(RTCI420Buffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCI420Buffer) alloc] initWithFrameBuffer:i420Buffer];
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCI420Buffer *buffer = [[RTCI420Buffer alloc] initWithFrameBuffer:i420Buffer];
+  RTCVideoFrame *frame =
+      [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
 
   XCTestExpectation *callbackExpectation = [self expectationWithDescription:@"videoSinkCallback"];
-  ObjCCallbackVideoSink callback_video_sink(^void(RTC_OBJC_TYPE(RTCVideoFrame) * outputFrame) {
+  ObjCCallbackVideoSink callback_video_sink(^void(RTCVideoFrame *outputFrame) {
     XCTAssertEqual(outputFrame.width, 360);
     XCTAssertEqual(outputFrame.height, 640);
 
-    RTC_OBJC_TYPE(RTCI420Buffer) *outputBuffer = (RTC_OBJC_TYPE(RTCI420Buffer) *)outputFrame.buffer;
+    RTCI420Buffer *outputBuffer = (RTCI420Buffer *)outputFrame.buffer;
 
     double psnr = I420PSNR(*[buffer nativeI420Buffer], *[outputBuffer nativeI420Buffer]);
     XCTAssertEqual(psnr, webrtc::kPerfectPSNR);
@@ -425,7 +397,7 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   });
 
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(&callback_video_sink, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(640, 360, 30);
@@ -436,19 +408,16 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
 
 - (void)testOnCapturedFrameI420BufferNeedsCropping {
   rtc::scoped_refptr<webrtc::I420Buffer> i420Buffer = CreateI420Gradient(380, 640);
-  RTC_OBJC_TYPE(RTCI420Buffer) *buffer =
-      [[RTC_OBJC_TYPE(RTCI420Buffer) alloc] initWithFrameBuffer:i420Buffer];
-  RTC_OBJC_TYPE(RTCVideoFrame) *frame =
-      [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:buffer
-                                                  rotation:RTCVideoRotation_0
-                                               timeStampNs:0];
+  RTCI420Buffer *buffer = [[RTCI420Buffer alloc] initWithFrameBuffer:i420Buffer];
+  RTCVideoFrame *frame =
+      [[RTCVideoFrame alloc] initWithBuffer:buffer rotation:RTCVideoRotation_0 timeStampNs:0];
 
   XCTestExpectation *callbackExpectation = [self expectationWithDescription:@"videoSinkCallback"];
-  ObjCCallbackVideoSink callback_video_sink(^void(RTC_OBJC_TYPE(RTCVideoFrame) * outputFrame) {
+  ObjCCallbackVideoSink callback_video_sink(^void(RTCVideoFrame *outputFrame) {
     XCTAssertEqual(outputFrame.width, 360);
     XCTAssertEqual(outputFrame.height, 640);
 
-    RTC_OBJC_TYPE(RTCI420Buffer) *outputBuffer = (RTC_OBJC_TYPE(RTCI420Buffer) *)outputFrame.buffer;
+    RTCI420Buffer *outputBuffer = (RTCI420Buffer *)outputFrame.buffer;
 
     double psnr = I420PSNR(*[buffer nativeI420Buffer], *[outputBuffer nativeI420Buffer]);
     XCTAssertGreaterThanOrEqual(psnr, 40);
@@ -457,7 +426,7 @@ class ObjCCallbackVideoSink : public rtc::VideoSinkInterface<webrtc::VideoFrame>
   });
 
   const rtc::VideoSinkWants video_sink_wants;
-  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source.get();
+  rtc::VideoSourceInterface<webrtc::VideoFrame> *video_source_interface = _video_source;
   video_source_interface->AddOrUpdateSink(&callback_video_sink, video_sink_wants);
 
   _video_source->OnOutputFormatRequest(640, 360, 30);

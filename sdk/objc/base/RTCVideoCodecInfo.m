@@ -10,7 +10,7 @@
 
 #import "RTCVideoCodecInfo.h"
 
-@implementation RTC_OBJC_TYPE (RTCVideoCodecInfo)
+@implementation RTCVideoCodecInfo
 
 @synthesize name = _name;
 @synthesize parameters = _parameters;
@@ -29,7 +29,7 @@
   return self;
 }
 
-- (BOOL)isEqualToCodecInfo:(RTC_OBJC_TYPE(RTCVideoCodecInfo) *)info {
+- (BOOL)isEqualToCodecInfo:(RTCVideoCodecInfo *)info {
   if (!info ||
       ![self.name isEqualToString:info.name] ||
       ![self.parameters isEqualToDictionary:info.parameters]) {

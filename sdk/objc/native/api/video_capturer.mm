@@ -11,21 +11,21 @@
 #include "sdk/objc/native/api/video_capturer.h"
 
 #include "absl/memory/memory.h"
-#include "api/video_track_source_proxy_factory.h"
+#include "api/video_track_source_proxy.h"
 #include "sdk/objc/native/src/objc_video_track_source.h"
 
 namespace webrtc {
 
 rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> ObjCToNativeVideoCapturer(
-    RTC_OBJC_TYPE(RTCVideoCapturer) * objc_video_capturer,
+    RTCVideoCapturer *objc_video_capturer,
     rtc::Thread *signaling_thread,
     rtc::Thread *worker_thread) {
   RTCObjCVideoSourceAdapter *adapter = [[RTCObjCVideoSourceAdapter alloc] init];
-  rtc::scoped_refptr<webrtc::ObjCVideoTrackSource> objc_video_track_source =
-      rtc::make_ref_counted<webrtc::ObjCVideoTrackSource>(adapter);
+  rtc::scoped_refptr<webrtc::ObjCVideoTrackSource> objc_video_track_source(
+      new rtc::RefCountedObject<webrtc::ObjCVideoTrackSource>(adapter));
   rtc::scoped_refptr<webrtc::VideoTrackSourceInterface> video_source =
-      webrtc::CreateVideoTrackSourceProxy(
-          signaling_thread, worker_thread, objc_video_track_source.get());
+      webrtc::VideoTrackSourceProxy::Create(
+          signaling_thread, worker_thread, objc_video_track_source);
 
   objc_video_capturer.delegate = adapter;
 

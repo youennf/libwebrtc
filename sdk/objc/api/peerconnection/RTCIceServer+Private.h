@@ -14,14 +14,13 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface RTC_OBJC_TYPE (RTCIceServer)
-()
+@interface RTCIceServer ()
 
-    /**
-     * IceServer struct representation of this RTCIceServer object's data.
-     * This is needed to pass to the underlying C++ APIs.
-     */
-    @property(nonatomic, readonly) webrtc::PeerConnectionInterface::IceServer nativeServer;
+/**
+ * IceServer struct representation of this RTCIceServer object's data.
+ * This is needed to pass to the underlying C++ APIs.
+ */
+@property(nonatomic, readonly) webrtc::PeerConnectionInterface::IceServer nativeServer;
 
 /** Initialize an RTCIceServer from a native IceServer. */
 - (instancetype)initWithNativeServer:(webrtc::PeerConnectionInterface::IceServer)nativeServer;

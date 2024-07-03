@@ -9,7 +9,6 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <XCTest/XCTest.h>
 
 #include "rtc_base/gunit.h"
 
@@ -17,24 +16,27 @@
 #import "api/peerconnection/RTCSessionDescription.h"
 #import "helpers/NSString+StdString.h"
 
-@interface RTCSessionDescriptionTests : XCTestCase
+@interface RTCSessionDescriptionTest : NSObject
+- (void)testSessionDescriptionConversion;
+- (void)testInitFromNativeSessionDescription;
 @end
 
-@implementation RTCSessionDescriptionTests
+@implementation RTCSessionDescriptionTest
 
 /**
- * Test conversion of an Objective-C RTC_OBJC_TYPE(RTCSessionDescription) to a native
+ * Test conversion of an Objective-C RTCSessionDescription to a native
  * SessionDescriptionInterface (based on the types and SDP strings being equal).
  */
 - (void)testSessionDescriptionConversion {
-  RTC_OBJC_TYPE(RTCSessionDescription) *description =
-      [[RTC_OBJC_TYPE(RTCSessionDescription) alloc] initWithType:RTCSdpTypeAnswer sdp:[self sdp]];
+  RTCSessionDescription *description =
+      [[RTCSessionDescription alloc] initWithType:RTCSdpTypeAnswer
+                                              sdp:[self sdp]];
 
-  std::unique_ptr<webrtc::SessionDescriptionInterface> nativeDescription =
+  webrtc::SessionDescriptionInterface *nativeDescription =
       description.nativeDescription;
 
   EXPECT_EQ(RTCSdpTypeAnswer,
-            [RTC_OBJC_TYPE(RTCSessionDescription) typeForStdString:nativeDescription->type()]);
+      [RTCSessionDescription typeForStdString:nativeDescription->type()]);
 
   std::string sdp;
   nativeDescription->ToString(&sdp);
@@ -49,10 +51,11 @@
       [self sdp].stdString,
       nullptr);
 
-  RTC_OBJC_TYPE(RTCSessionDescription) *description =
-      [[RTC_OBJC_TYPE(RTCSessionDescription) alloc] initWithNativeDescription:nativeDescription];
+  RTCSessionDescription *description =
+      [[RTCSessionDescription alloc] initWithNativeDescription:
+      nativeDescription];
   EXPECT_EQ(webrtc::SessionDescriptionInterface::kAnswer,
-            [RTC_OBJC_TYPE(RTCSessionDescription) stdStringForType:description.type]);
+      [RTCSessionDescription stdStringForType:description.type]);
   EXPECT_TRUE([[self sdp] isEqualToString:description.sdp]);
 }
 
@@ -87,6 +90,8 @@
           "a=maxptime:60\r\n"
           "a=ssrc:1504474588 cname:V+FdIC5AJpxLhdYQ\r\n"
           "a=ssrc:1504474588 msid:ARDAMS ARDAMSa0\r\n"
+          "a=ssrc:1504474588 mslabel:ARDAMS\r\n"
+          "a=ssrc:1504474588 label:ARDAMSa0\r\n"
           "m=video 9 UDP/TLS/RTP/SAVPF 100 116 117 96\r\n"
           "c=IN IP4 0.0.0.0\r\n"
           "a=rtcp:9 IN IP4 0.0.0.0\r\n"
@@ -115,8 +120,26 @@
           "a=ssrc-group:FID 498297514 1644357692\r\n"
           "a=ssrc:498297514 cname:V+FdIC5AJpxLhdYQ\r\n"
           "a=ssrc:498297514 msid:ARDAMS ARDAMSv0\r\n"
+          "a=ssrc:498297514 mslabel:ARDAMS\r\n"
+          "a=ssrc:498297514 label:ARDAMSv0\r\n"
           "a=ssrc:1644357692 cname:V+FdIC5AJpxLhdYQ\r\n"
-          "a=ssrc:1644357692 msid:ARDAMS ARDAMSv0\r\n";
+          "a=ssrc:1644357692 msid:ARDAMS ARDAMSv0\r\n"
+          "a=ssrc:1644357692 mslabel:ARDAMS\r\n"
+          "a=ssrc:1644357692 label:ARDAMSv0\r\n";
 }
 
 @end
+
+TEST(RTCSessionDescriptionTest, SessionDescriptionConversionTest) {
+  @autoreleasepool {
+    RTCSessionDescriptionTest *test = [[RTCSessionDescriptionTest alloc] init];
+    [test testSessionDescriptionConversion];
+  }
+}
+
+TEST(RTCSessionDescriptionTest, InitFromSessionDescriptionTest) {
+  @autoreleasepool {
+    RTCSessionDescriptionTest *test = [[RTCSessionDescriptionTest alloc] init];
+    [test testInitFromNativeSessionDescription];
+  }
+}

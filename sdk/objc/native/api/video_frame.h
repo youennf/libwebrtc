@@ -11,12 +11,13 @@
 #ifndef SDK_OBJC_NATIVE_API_VIDEO_FRAME_H_
 #define SDK_OBJC_NATIVE_API_VIDEO_FRAME_H_
 
-#include "api/video/video_frame.h"
 #import "base/RTCVideoFrame.h"
+
+#include "api/video/video_frame.h"
 
 namespace webrtc {
 
-RTC_OBJC_TYPE(RTCVideoFrame) * NativeToObjCVideoFrame(const VideoFrame& frame);
+RTCVideoFrame* NativeToObjCVideoFrame(const VideoFrame& frame);
 
 }  // namespace webrtc
 

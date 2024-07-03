@@ -29,17 +29,17 @@
 #define RTCMTLI420RendererClass NSClassFromString(@"RTCMTLI420Renderer")
 #define RTCMTLRGBRendererClass NSClassFromString(@"RTCMTLRGBRenderer")
 
-@interface RTC_OBJC_TYPE (RTCMTLVideoView)
-()<MTKViewDelegate> @property(nonatomic) RTCMTLI420Renderer *rendererI420;
+@interface RTCMTLVideoView () <MTKViewDelegate>
+@property(nonatomic) RTCMTLI420Renderer *rendererI420;
 @property(nonatomic) RTCMTLNV12Renderer *rendererNV12;
 @property(nonatomic) RTCMTLRGBRenderer *rendererRGB;
 @property(nonatomic) MTKView *metalView;
-@property(atomic) RTC_OBJC_TYPE(RTCVideoFrame) * videoFrame;
+@property(atomic) RTCVideoFrame *videoFrame;
 @property(nonatomic) CGSize videoFrameSize;
 @property(nonatomic) int64_t lastFrameTimeNs;
 @end
 
-@implementation RTC_OBJC_TYPE (RTCMTLVideoView)
+@implementation RTCMTLVideoView
 
 @synthesize delegate = _delegate;
 @synthesize rendererI420 = _rendererI420;
@@ -86,7 +86,11 @@
 #pragma mark - Private
 
 + (BOOL)isMetalAvailable {
+#if defined(RTC_SUPPORTS_METAL)
   return MTLCreateSystemDefaultDevice() != nil;
+#else
+  return NO;
+#endif
 }
 
 + (MTKView *)createMetalView:(CGRect)frame {
@@ -106,10 +110,9 @@
 }
 
 - (void)configure {
-  NSAssert([RTC_OBJC_TYPE(RTCMTLVideoView) isMetalAvailable],
-           @"Metal not availiable on this device");
+  NSAssert([RTCMTLVideoView isMetalAvailable], @"Metal not availiable on this device");
 
-  self.metalView = [RTC_OBJC_TYPE(RTCMTLVideoView) createMetalView:self.bounds];
+  self.metalView = [RTCMTLVideoView createMetalView:self.bounds];
   self.metalView.delegate = self;
   self.metalView.contentMode = UIViewContentModeScaleAspectFill;
   [self addSubview:self.metalView];
@@ -137,10 +140,9 @@
 
 - (void)drawInMTKView:(nonnull MTKView *)view {
   NSAssert(view == self.metalView, @"Receiving draw callbacks from foreign instance.");
-  RTC_OBJC_TYPE(RTCVideoFrame) *videoFrame = self.videoFrame;
+  RTCVideoFrame *videoFrame = self.videoFrame;
   // Skip rendering if we've already rendered this frame.
-  if (!videoFrame || videoFrame.width <= 0 || videoFrame.height <= 0 ||
-      videoFrame.timeStampNs == self.lastFrameTimeNs) {
+  if (!videoFrame || videoFrame.timeStampNs == self.lastFrameTimeNs) {
     return;
   }
 
@@ -149,12 +151,12 @@
   }
 
   RTCMTLRenderer *renderer;
-  if ([videoFrame.buffer isKindOfClass:[RTC_OBJC_TYPE(RTCCVPixelBuffer) class]]) {
-    RTC_OBJC_TYPE(RTCCVPixelBuffer) *buffer = (RTC_OBJC_TYPE(RTCCVPixelBuffer) *)videoFrame.buffer;
+  if ([videoFrame.buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
+    RTCCVPixelBuffer *buffer = (RTCCVPixelBuffer*)videoFrame.buffer;
     const OSType pixelFormat = CVPixelBufferGetPixelFormatType(buffer.pixelBuffer);
     if (pixelFormat == kCVPixelFormatType_32BGRA || pixelFormat == kCVPixelFormatType_32ARGB) {
       if (!self.rendererRGB) {
-        self.rendererRGB = [RTC_OBJC_TYPE(RTCMTLVideoView) createRGBRenderer];
+        self.rendererRGB = [RTCMTLVideoView createRGBRenderer];
         if (![self.rendererRGB addRenderingDestination:self.metalView]) {
           self.rendererRGB = nil;
           RTCLogError(@"Failed to create RGB renderer");
@@ -164,7 +166,7 @@
       renderer = self.rendererRGB;
     } else {
       if (!self.rendererNV12) {
-        self.rendererNV12 = [RTC_OBJC_TYPE(RTCMTLVideoView) createNV12Renderer];
+        self.rendererNV12 = [RTCMTLVideoView createNV12Renderer];
         if (![self.rendererNV12 addRenderingDestination:self.metalView]) {
           self.rendererNV12 = nil;
           RTCLogError(@"Failed to create NV12 renderer");
@@ -175,7 +177,7 @@
     }
   } else {
     if (!self.rendererI420) {
-      self.rendererI420 = [RTC_OBJC_TYPE(RTCMTLVideoView) createI420Renderer];
+      self.rendererI420 = [RTCMTLVideoView createI420Renderer];
       if (![self.rendererI420 addRenderingDestination:self.metalView]) {
         self.rendererI420 = nil;
         RTCLogError(@"Failed to create I420 renderer");
@@ -234,12 +236,12 @@
   }
 }
 
-#pragma mark - RTC_OBJC_TYPE(RTCVideoRenderer)
+#pragma mark - RTCVideoRenderer
 
 - (void)setSize:(CGSize)size {
-  __weak RTC_OBJC_TYPE(RTCMTLVideoView) *weakSelf = self;
+  __weak RTCMTLVideoView *weakSelf = self;
   dispatch_async(dispatch_get_main_queue(), ^{
-    RTC_OBJC_TYPE(RTCMTLVideoView) *strongSelf = weakSelf;
+    RTCMTLVideoView *strongSelf = weakSelf;
 
     strongSelf.videoFrameSize = size;
     CGSize drawableSize = [strongSelf drawableSize];
@@ -250,7 +252,7 @@
   });
 }
 
-- (void)renderFrame:(nullable RTC_OBJC_TYPE(RTCVideoFrame) *)frame {
+- (void)renderFrame:(nullable RTCVideoFrame *)frame {
   if (!self.isEnabled) {
     return;
   }

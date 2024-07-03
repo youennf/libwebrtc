@@ -15,7 +15,7 @@
 
 #include "rtc_base/checks.h"
 
-@implementation RTC_OBJC_TYPE (RTCSessionDescription)
+@implementation RTCSessionDescription
 
 @synthesize type = _type;
 @synthesize sdp = _sdp;
@@ -31,6 +31,7 @@
 }
 
 - (instancetype)initWithType:(RTCSdpType)type sdp:(NSString *)sdp {
+  NSParameterAssert(sdp.length);
   if (self = [super init]) {
     _type = type;
     _sdp = [sdp copy];
@@ -39,18 +40,20 @@
 }
 
 - (NSString *)description {
-  return [NSString stringWithFormat:@"RTC_OBJC_TYPE(RTCSessionDescription):\n%@\n%@",
+  return [NSString stringWithFormat:@"RTCSessionDescription:\n%@\n%@",
                                     [[self class] stringForType:_type],
                                     _sdp];
 }
 
 #pragma mark - Private
 
-- (std::unique_ptr<webrtc::SessionDescriptionInterface>)nativeDescription {
+- (webrtc::SessionDescriptionInterface *)nativeDescription {
   webrtc::SdpParseError error;
 
-  std::unique_ptr<webrtc::SessionDescriptionInterface> description(webrtc::CreateSessionDescription(
-      [[self class] stdStringForType:_type], _sdp.stdString, &error));
+  webrtc::SessionDescriptionInterface *description =
+      webrtc::CreateSessionDescription([[self class] stdStringForType:_type],
+                                       _sdp.stdString,
+                                       &error);
 
   if (!description) {
     RTCLogError(@"Failed to create session description: %s\nline: %s",
@@ -80,8 +83,6 @@
       return webrtc::SessionDescriptionInterface::kPrAnswer;
     case RTCSdpTypeAnswer:
       return webrtc::SessionDescriptionInterface::kAnswer;
-    case RTCSdpTypeRollback:
-      return webrtc::SessionDescriptionInterface::kRollback;
   }
 }
 
@@ -92,10 +93,8 @@
     return RTCSdpTypePrAnswer;
   } else if (string == webrtc::SessionDescriptionInterface::kAnswer) {
     return RTCSdpTypeAnswer;
-  } else if (string == webrtc::SessionDescriptionInterface::kRollback) {
-    return RTCSdpTypeRollback;
   } else {
-    RTC_DCHECK_NOTREACHED();
+    RTC_NOTREACHED();
     return RTCSdpTypeOffer;
   }
 }

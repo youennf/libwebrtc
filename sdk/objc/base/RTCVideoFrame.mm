@@ -13,9 +13,10 @@
 #import "RTCI420Buffer.h"
 #import "RTCVideoFrameBuffer.h"
 
-@implementation RTC_OBJC_TYPE (RTCVideoFrame) {
+@implementation RTCVideoFrame {
   RTCVideoRotation _rotation;
   int64_t _timeStampNs;
+  uint64_t _duration;
 }
 
 @synthesize buffer = _buffer;
@@ -37,10 +38,14 @@
   return _timeStampNs;
 }
 
-- (RTC_OBJC_TYPE(RTCVideoFrame) *)newI420VideoFrame {
-  return [[RTC_OBJC_TYPE(RTCVideoFrame) alloc] initWithBuffer:[_buffer toI420]
-                                                     rotation:_rotation
-                                                  timeStampNs:_timeStampNs];
+- (uint64_t)duration {
+  return _duration;
+}
+
+- (RTCVideoFrame *)newI420VideoFrame {
+  return [[RTCVideoFrame alloc] initWithBuffer:[_buffer toI420]
+                                      rotation:_rotation
+                                   timeStampNs:_timeStampNs];
 }
 
 - (instancetype)initWithPixelBuffer:(CVPixelBufferRef)pixelBuffer
@@ -63,13 +68,14 @@
   return nil;
 }
 
-- (instancetype)initWithBuffer:(id<RTC_OBJC_TYPE(RTCVideoFrameBuffer)>)buffer
+- (instancetype)initWithBuffer:(id<RTCVideoFrameBuffer>)buffer
                       rotation:(RTCVideoRotation)rotation
                    timeStampNs:(int64_t)timeStampNs {
   if (self = [super init]) {
     _buffer = buffer;
     _rotation = rotation;
     _timeStampNs = timeStampNs;
+    _duration = 0;
   }
 
   return self;

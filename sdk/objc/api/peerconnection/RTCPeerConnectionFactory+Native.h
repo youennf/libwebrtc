@@ -17,6 +17,7 @@ namespace webrtc {
 class AudioDeviceModule;
 class AudioEncoderFactory;
 class AudioDecoderFactory;
+class MediaTransportFactory;
 class NetworkControllerFactoryInterface;
 class VideoEncoderFactory;
 class VideoDecoderFactory;
@@ -30,10 +31,9 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  * This class extension exposes methods that work directly with injectable C++ components.
  */
-@interface RTC_OBJC_TYPE (RTCPeerConnectionFactory)
-()
+@interface RTCPeerConnectionFactory ()
 
-    - (instancetype)initNative NS_DESIGNATED_INITIALIZER;
+- (instancetype)initNative NS_DESIGNATED_INITIALIZER;
 
 /* Initializer used when WebRTC is compiled with no media support */
 - (instancetype)initWithNoMedia;
@@ -64,21 +64,39 @@ NS_ASSUME_NONNULL_BEGIN
                     audioDeviceModule:(nullable webrtc::AudioDeviceModule *)audioDeviceModule
                 audioProcessingModule:
                     (rtc::scoped_refptr<webrtc::AudioProcessing>)audioProcessingModule
-             networkControllerFactory:(std::unique_ptr<webrtc::NetworkControllerFactoryInterface>)
-                                          networkControllerFactory;
+                mediaTransportFactory:
+                    (std::unique_ptr<webrtc::MediaTransportFactory>)mediaTransportFactory;
 
 - (instancetype)
-    initWithEncoderFactory:(nullable id<RTC_OBJC_TYPE(RTCVideoEncoderFactory)>)encoderFactory
-            decoderFactory:(nullable id<RTC_OBJC_TYPE(RTCVideoDecoderFactory)>)decoderFactory;
+    initWithNativeAudioEncoderFactory:
+        (rtc::scoped_refptr<webrtc::AudioEncoderFactory>)audioEncoderFactory
+            nativeAudioDecoderFactory:
+                (rtc::scoped_refptr<webrtc::AudioDecoderFactory>)audioDecoderFactory
+            nativeVideoEncoderFactory:
+                (std::unique_ptr<webrtc::VideoEncoderFactory>)videoEncoderFactory
+            nativeVideoDecoderFactory:
+                (std::unique_ptr<webrtc::VideoDecoderFactory>)videoDecoderFactory
+                    audioDeviceModule:(nullable webrtc::AudioDeviceModule *)audioDeviceModule
+                audioProcessingModule:
+                    (rtc::scoped_refptr<webrtc::AudioProcessing>)audioProcessingModule
+             networkControllerFactory:(std::unique_ptr<webrtc::NetworkControllerFactoryInterface>)
+                                          networkControllerFactory
+                mediaTransportFactory:
+                    (std::unique_ptr<webrtc::MediaTransportFactory>)mediaTransportFactory;
+
+- (instancetype)initWithEncoderFactory:(nullable id<RTCVideoEncoderFactory>)encoderFactory
+                        decoderFactory:(nullable id<RTCVideoDecoderFactory>)decoderFactory
+                 mediaTransportFactory:
+                     (std::unique_ptr<webrtc::MediaTransportFactory>)mediaTransportFactory;
 
 /** Initialize an RTCPeerConnection with a configuration, constraints, and
  *  dependencies.
  */
-- (nullable RTC_OBJC_TYPE(RTCPeerConnection) *)
-    peerConnectionWithDependencies:(RTC_OBJC_TYPE(RTCConfiguration) *)configuration
-                       constraints:(RTC_OBJC_TYPE(RTCMediaConstraints) *)constraints
+- (RTCPeerConnection *)
+    peerConnectionWithDependencies:(RTCConfiguration *)configuration
+                       constraints:(RTCMediaConstraints *)constraints
                       dependencies:(std::unique_ptr<webrtc::PeerConnectionDependencies>)dependencies
-                          delegate:(nullable id<RTC_OBJC_TYPE(RTCPeerConnectionDelegate)>)delegate;
+                          delegate:(nullable id<RTCPeerConnectionDelegate>)delegate;
 
 @end
 

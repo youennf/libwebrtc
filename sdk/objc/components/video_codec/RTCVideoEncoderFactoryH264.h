@@ -14,5 +14,6 @@
 #import "RTCVideoEncoderFactory.h"
 
 RTC_OBJC_EXPORT
-@interface RTC_OBJC_TYPE (RTCVideoEncoderFactoryH264) : NSObject <RTC_OBJC_TYPE(RTCVideoEncoderFactory)>
+__attribute__((objc_runtime_name("WK_RTCVideoEncoderFactoryH264")))
+@interface RTCVideoEncoderFactoryH264 : NSObject <RTCVideoEncoderFactory>
 @end

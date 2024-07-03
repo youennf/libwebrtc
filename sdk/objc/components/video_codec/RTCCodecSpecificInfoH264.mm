@@ -13,7 +13,7 @@
 #import "RTCH264ProfileLevelId.h"
 
 // H264 specific settings.
-@implementation RTC_OBJC_TYPE (RTCCodecSpecificInfoH264)
+@implementation RTCCodecSpecificInfoH264
 
 @synthesize packetizationMode = _packetizationMode;
 

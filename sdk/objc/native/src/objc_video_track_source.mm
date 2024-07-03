@@ -25,8 +25,7 @@
 
 @synthesize objCVideoTrackSource = _objCVideoTrackSource;
 
-- (void)capturer:(RTC_OBJC_TYPE(RTCVideoCapturer) *)capturer
-    didCaptureVideoFrame:(RTC_OBJC_TYPE(RTCVideoFrame) *)frame {
+- (void)capturer:(RTCVideoCapturer *)capturer didCaptureVideoFrame:(RTCVideoFrame *)frame {
   _objCVideoTrackSource->OnCapturedFrame(frame);
 }
 
@@ -34,18 +33,15 @@
 
 namespace webrtc {
 
-ObjCVideoTrackSource::ObjCVideoTrackSource() : ObjCVideoTrackSource(false) {}
-
-ObjCVideoTrackSource::ObjCVideoTrackSource(bool is_screencast)
-    : AdaptedVideoTrackSource(/* required resolution alignment */ 2),
-      is_screencast_(is_screencast) {}
+ObjCVideoTrackSource::ObjCVideoTrackSource()
+    : AdaptedVideoTrackSource(/* required resolution alignment */ 2) {}
 
 ObjCVideoTrackSource::ObjCVideoTrackSource(RTCObjCVideoSourceAdapter *adapter) : adapter_(adapter) {
   adapter_.objCVideoTrackSource = this;
 }
 
 bool ObjCVideoTrackSource::is_screencast() const {
-  return is_screencast_;
+  return false;
 }
 
 absl::optional<bool> ObjCVideoTrackSource::needs_denoising() const {
@@ -65,7 +61,7 @@ void ObjCVideoTrackSource::OnOutputFormatRequest(int width, int height, int fps)
   video_adapter()->OnOutputFormatRequest(format);
 }
 
-void ObjCVideoTrackSource::OnCapturedFrame(RTC_OBJC_TYPE(RTCVideoFrame) * frame) {
+void ObjCVideoTrackSource::OnCapturedFrame(RTCVideoFrame *frame) {
   const int64_t timestamp_us = frame.timeStampNs / rtc::kNumNanosecsPerMicrosec;
   const int64_t translated_timestamp_us =
       timestamp_aligner_.TranslateTimestamp(timestamp_us, rtc::TimeMicros());
@@ -91,12 +87,11 @@ void ObjCVideoTrackSource::OnCapturedFrame(RTC_OBJC_TYPE(RTCVideoFrame) * frame)
   rtc::scoped_refptr<VideoFrameBuffer> buffer;
   if (adapted_width == frame.width && adapted_height == frame.height) {
     // No adaption - optimized path.
-    buffer = rtc::make_ref_counted<ObjCFrameBuffer>(frame.buffer);
-  } else if ([frame.buffer isKindOfClass:[RTC_OBJC_TYPE(RTCCVPixelBuffer) class]]) {
+    buffer = new rtc::RefCountedObject<ObjCFrameBuffer>(frame.buffer);
+  } else if ([frame.buffer isKindOfClass:[RTCCVPixelBuffer class]]) {
     // Adapted CVPixelBuffer frame.
-    RTC_OBJC_TYPE(RTCCVPixelBuffer) *rtcPixelBuffer =
-        (RTC_OBJC_TYPE(RTCCVPixelBuffer) *)frame.buffer;
-    buffer = rtc::make_ref_counted<ObjCFrameBuffer>([[RTC_OBJC_TYPE(RTCCVPixelBuffer) alloc]
+    RTCCVPixelBuffer *rtcPixelBuffer = (RTCCVPixelBuffer *)frame.buffer;
+    buffer = new rtc::RefCountedObject<ObjCFrameBuffer>([[RTCCVPixelBuffer alloc]
         initWithPixelBuffer:rtcPixelBuffer.pixelBuffer
                adaptedWidth:adapted_width
               adaptedHeight:adapted_height
@@ -108,7 +103,7 @@ void ObjCVideoTrackSource::OnCapturedFrame(RTC_OBJC_TYPE(RTCVideoFrame) * frame)
     // Adapted I420 frame.
     // TODO(magjed): Optimize this I420 path.
     rtc::scoped_refptr<I420Buffer> i420_buffer = I420Buffer::Create(adapted_width, adapted_height);
-    buffer = rtc::make_ref_counted<ObjCFrameBuffer>(frame.buffer);
+    buffer = new rtc::RefCountedObject<ObjCFrameBuffer>(frame.buffer);
     i420_buffer->CropAndScaleFrom(*buffer->ToI420(), crop_x, crop_y, crop_width, crop_height);
     buffer = i420_buffer;
   }

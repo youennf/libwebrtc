@@ -28,7 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  * @param frame The frame to be rendered.
  */
-- (void)drawFrame:(RTC_OBJC_TYPE(RTCVideoFrame) *)frame;
+- (void)drawFrame:(RTCVideoFrame *)frame;
 
 /**
  * Sets the provided view as rendering destination if possible.
