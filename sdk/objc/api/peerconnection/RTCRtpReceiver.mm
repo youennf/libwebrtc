@@ -13,7 +13,6 @@
 #import "RTCMediaStreamTrack+Private.h"
 #import "RTCRtpParameters+Private.h"
 #import "RTCRtpReceiver+Native.h"
-#import "RTCRtpSource+Private.h"
 #import "base/RTCLogging.h"
 #import "helpers/NSString+StdString.h"
 
@@ -66,16 +65,6 @@ void RtpReceiverDelegateAdapter::OnFirstPacketReceived(
 - (NSString *)description {
   return [NSString stringWithFormat:@"RTCRtpReceiver {\n  receiverId: %@\n}",
       self.receiverId];
-}
-
-- (NSArray<RTC_OBJC_TYPE(RTCRtpSource) *> *)sources {
-  std::vector<webrtc::RtpSource> nativeSources = _nativeRtpReceiver->GetSources();
-  NSMutableArray<RTC_OBJC_TYPE(RTCRtpSource) *> *result =
-      [[NSMutableArray alloc] initWithCapacity:nativeSources.size()];
-  for (auto nativeSource : nativeSources) {
-    [result addObject:[[RTC_OBJC_TYPE(RTCRtpSource) alloc] initWithNativeRtpSource:nativeSource]];
-  }
-  return result;
 }
 
 - (void)dealloc {
