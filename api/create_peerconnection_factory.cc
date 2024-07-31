@@ -18,6 +18,9 @@
 #include "api/enable_media.h"
 #include "api/peer_connection_interface.h"
 #include "api/rtc_event_log/rtc_event_log_factory.h"
+#if defined(WEBRTC_WEBKIT_BUILD)
+#include "api/task_queue/default_task_queue_factory.h"
+#endif
 #include "api/scoped_refptr.h"
 #include "rtc_base/thread.h"
 
@@ -35,7 +38,6 @@ rtc::scoped_refptr<PeerConnectionFactoryInterface> CreatePeerConnectionFactory(
     rtc::scoped_refptr<AudioMixer> audio_mixer,
     rtc::scoped_refptr<AudioProcessing> audio_processing,
     std::unique_ptr<AudioFrameProcessor> audio_frame_processor,
-    std::unique_ptr<FieldTrialsView> field_trials) {
     std::unique_ptr<FieldTrialsView> field_trials
 #if defined(WEBRTC_WEBKIT_BUILD)
     , std::unique_ptr<TaskQueueFactory> task_queue_factory
