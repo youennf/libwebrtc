@@ -407,6 +407,7 @@ class RTC_EXPORT Network {
   friend class NetworkManager;
 };
 
+#if WEBRTC_WEBKIT_BUILD // Move NetworkManagerBase and BasicNetworkManager definitions after Network.
 // Base class for NetworkManager implementations.
 class RTC_EXPORT NetworkManagerBase : public NetworkManager {
  public:
@@ -575,6 +576,7 @@ class RTC_EXPORT BasicNetworkManager : public NetworkManagerBase,
   std::vector<NetworkMask> vpn_;
   scoped_refptr<PendingTaskSafetyFlag> task_safety_flag_;
 };
+#endif // WEBRTC_WEBKIT_BUILD
 
 }  //  namespace webrtc
 
