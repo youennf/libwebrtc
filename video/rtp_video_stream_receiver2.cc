@@ -981,7 +981,7 @@ void RtpVideoStreamReceiver2::OnAssembledFrame(
     // FIXME: Consider using MovingAverage instead.
     ++frameCount_;
 
-    auto frameTime = clock_->TimeInMilliseconds();
+    auto frameTime = env_.clock().TimeInMilliseconds();
     auto lastFrameTime = observedFrameTimeStamps_.empty() ? frameTime : observedFrameTimeStamps_.back();
 
     if (observedFrameRate_) {
