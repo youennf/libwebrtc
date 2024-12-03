@@ -60,7 +60,7 @@ std::optional<H265VpsParser::VpsState> H265VpsParser::ParseInternal(
   vps.vps_max_sub_layers_minus1 = reader.ReadBits(6);
 
   if (!reader.Ok() || (vps.vps_max_sub_layers_minus1 >= kMaxSubLayers)) {
-    return absl::nullopt;
+    return std::nullopt;
   }
 
   //  vps_max_sub_layers_minus1 u(3)
@@ -72,7 +72,7 @@ std::optional<H265VpsParser::VpsState> H265VpsParser::ParseInternal(
 
   auto profile_tier_level = H265SpsParser::ParseProfileTierLevel(true, vps.vps_max_sub_layers_minus1, reader);
   if (!reader.Ok() || !profile_tier_level) {
-    return absl::nullopt;
+    return std::nullopt;
   }
 
   bool vps_sub_layer_ordering_info_present_flag = reader.Read<bool>();
@@ -82,7 +82,7 @@ std::optional<H265VpsParser::VpsState> H265VpsParser::ParseInternal(
     // vps_max_num_reorder_pics[ i ]: ue(v)
     vps.vps_max_num_reorder_pics[i] = reader.ReadExponentialGolomb();
     if (!reader.Ok() || (i > 0 && vps.vps_max_num_reorder_pics[i] < vps.vps_max_num_reorder_pics[i - 1])) {
-      return absl::nullopt;
+      return std::nullopt;
     }
 
     // vps_max_latency_increase_plus1: ue(v)
@@ -94,7 +94,7 @@ std::optional<H265VpsParser::VpsState> H265VpsParser::ParseInternal(
     }
   }
   if (!reader.Ok() || !profile_tier_level) {
-    return absl::nullopt;
+    return std::nullopt;
   }
 #endif
 

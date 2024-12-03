@@ -269,7 +269,7 @@ H265SpsParser::ParseShortTermRefPicSet(
 #if WEBRTC_WEBKIT_BUILD
     if (!reader.Ok() || st_ref_pic_set.num_negative_pics > kMaxSPSPics || st_ref_pic_set.num_positive_pics > kMaxSPSPics
         || (st_ref_pic_set.num_negative_pics + st_ref_pic_set.num_positive_pics) > kMaxSPSPics) {
-      return absl::nullopt;
+      return std::nullopt;
     }
 #endif
     IN_RANGE_OR_RETURN_NULL(st_ref_pic_set.num_negative_pics, 0,
@@ -521,7 +521,7 @@ std::optional<H265SpsParser::SpsState> H265SpsParser::ParseSpsInternal(
   sps.log2_max_pic_order_cnt_lsb_minus4 = reader.ReadExponentialGolomb();
 #if WEBRTC_WEBKIT_BUILD
   if (!reader.Ok() || sps.log2_max_pic_order_cnt_lsb_minus4 > kMaxLog2LsbMinus4) {
-    return absl::nullopt;
+    return std::nullopt;
   }
 #endif
   IN_RANGE_OR_RETURN_NULL(sps.log2_max_pic_order_cnt_lsb_minus4, 0, 12);
@@ -639,7 +639,7 @@ std::optional<H265SpsParser::SpsState> H265SpsParser::ParseSpsInternal(
   sps.num_short_term_ref_pic_sets = reader.ReadExponentialGolomb();
 #if WEBRTC_WEBKIT_BUILD
     if (!reader.Ok() || sps.num_short_term_ref_pic_sets > kMaxSPSShortTermRefPics) {
-      return absl::nullopt;
+      return std::nullopt;
     }
 #endif
   IN_RANGE_OR_RETURN_NULL(sps.num_short_term_ref_pic_sets, 0,
@@ -667,7 +667,7 @@ std::optional<H265SpsParser::SpsState> H265SpsParser::ParseSpsInternal(
     sps.num_long_term_ref_pics_sps = reader.ReadExponentialGolomb();
 #if WEBRTC_WEBKIT_BUILD
     if (!reader.Ok() || sps.num_long_term_ref_pics_sps > kMaxSPSLongTermRefPics) {
-      return absl::nullopt;
+      return std::nullopt;
     }
 #endif
     IN_RANGE_OR_RETURN_NULL(sps.num_long_term_ref_pics_sps, 0,
