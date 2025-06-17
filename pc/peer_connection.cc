@@ -715,7 +715,7 @@ JsepTransportController* PeerConnection::InitializeTransportController_n(
 #if defined(WEBRTC_WEBKIT_BUILD)
         RTC_HISTOGRAM_ENUMERATION(
             "WebRTC.PeerConnection.DtlsHandshakeError", static_cast<int>(s),
-            static_cast<int>(rtc::SSLHandshakeError::MAX_VALUE));
+            static_cast<int>(SSLHandshakeError::MAX_VALUE));
 #else
         if (weak_ptr) {
           weak_ptr->OnTransportControllerDtlsHandshakeError(s);

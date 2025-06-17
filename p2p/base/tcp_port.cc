@@ -372,8 +372,8 @@ TCPConnection::TCPConnection(WeakPtr<Port> tcp_port,
     RTC_DCHECK(socket->GetLocalAddress().IsLoopbackIP() || absl::c_any_of(
 #else
     RTC_DCHECK(absl::c_any_of(
-        port_->Network()->GetIPs(), [this](const InterfaceAddress& addr) {
 #endif
+        port_->Network()->GetIPs(), [this](const InterfaceAddress& addr) {
           return socket_->GetLocalAddress().ipaddr() == addr;
         }));
     ConnectSocketSignals(socket);
