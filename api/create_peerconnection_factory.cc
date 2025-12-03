@@ -25,10 +25,6 @@
 #include "api/field_trials_view.h"
 #include "api/peer_connection_interface.h"
 #include "api/rtc_event_log/rtc_event_log_factory.h"
-#if defined(WEBRTC_WEBKIT_BUILD)
-#include "api/task_queue/default_task_queue_factory.h"
-#endif
-#include "api/transport/field_trial_based_config.h"
 #include "api/scoped_refptr.h"
 #include "api/video_codecs/video_decoder_factory.h"
 #include "api/video_codecs/video_encoder_factory.h"
@@ -49,14 +45,7 @@ scoped_refptr<PeerConnectionFactoryInterface> CreatePeerConnectionFactory(
     scoped_refptr<AudioProcessing> audio_processing,
     std::unique_ptr<AudioFrameProcessor> audio_frame_processor,
     std::unique_ptr<FieldTrialsView> field_trials
-#if defined(WEBRTC_WEBKIT_BUILD)
-    , std::unique_ptr<TaskQueueFactory> task_queue_factory
-#endif
   ) {
-  if (!field_trials) {
-    field_trials = std::make_unique<webrtc::FieldTrialBasedConfig>();
-  }
-
   PeerConnectionFactoryDependencies dependencies;
   dependencies.network_thread = network_thread;
   dependencies.worker_thread = worker_thread;
@@ -75,11 +64,6 @@ scoped_refptr<PeerConnectionFactoryInterface> CreatePeerConnectionFactory(
   if (audio_processing != nullptr) {
     dependencies.audio_processing_builder =
         CustomAudioProcessing(std::move(audio_processing));
-  } else {
-#ifndef WEBRTC_EXCLUDE_AUDIO_PROCESSING_MODULE
-    dependencies.audio_processing_builder =
-        std::make_unique<BuiltinAudioProcessingBuilder>();
-#endif
   }
   dependencies.audio_mixer = std::move(audio_mixer);
   dependencies.video_encoder_factory = std::move(video_encoder_factory);
