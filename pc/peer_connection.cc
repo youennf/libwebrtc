@@ -758,9 +758,15 @@ JsepTransportController* PeerConnection::InitializeNetworkThread(
   config.rtp_transport_factory = rtp_transport_factory_.get();
   config.on_dtls_handshake_error =
       [weak_ptr = weak_factory_.GetWeakPtr()](SSLHandshakeError s) {
+#if defined(WEBRTC_WEBKIT_BUILD)
+        RTC_HISTOGRAM_ENUMERATION(
+            "WebRTC.PeerConnection.DtlsHandshakeError", static_cast<int>(s),
+            static_cast<int>(SSLHandshakeError::MAX_VALUE));
+#else
         if (weak_ptr) {
           weak_ptr->OnTransportControllerDtlsHandshakeError(s);
         }
+#endif
       };
   config.signal_ice_candidates_gathered =
       [this](absl::string_view transport,
