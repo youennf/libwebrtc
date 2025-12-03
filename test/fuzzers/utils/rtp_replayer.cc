@@ -35,7 +35,9 @@
 #include "modules/rtp_rtcp/source/rtp_packet_received.h"
 #include "rtc_base/fake_clock.h"
 #include "rtc_base/logging.h"
+#if !WEBRTC_WEBKIT_BUILD
 #include "rtc_base/strings/json.h"
+#endif
 #include "system_wrappers/include/clock.h"
 #include "test/call_config_utils.h"
 #include "test/encoder_settings.h"
@@ -46,6 +48,7 @@
 namespace webrtc {
 namespace test {
 
+#if !WEBRTC_WEBKIT_BUILD
 void RtpReplayer::Replay(const std::string& replay_config_filepath,
                          const uint8_t* rtp_dump_data,
                          size_t rtp_dump_size) {
@@ -55,6 +58,7 @@ void RtpReplayer::Replay(const std::string& replay_config_filepath,
   return Replay(std::move(stream_state), std::move(receive_stream_configs),
                 rtp_dump_data, rtp_dump_size);
 }
+#endif
 
 void RtpReplayer::Replay(
     std::unique_ptr<StreamState> stream_state,
@@ -105,6 +109,7 @@ void RtpReplayer::Replay(
   }
 }
 
+#if !WEBRTC_WEBKIT_BUILD
 std::vector<VideoReceiveStreamInterface::Config>
 RtpReplayer::ReadConfigFromFile(const std::string& replay_config,
                                 Transport* transport) {
@@ -129,6 +134,7 @@ RtpReplayer::ReadConfigFromFile(const std::string& replay_config,
   }
   return receive_stream_configs;
 }
+#endif
 
 void RtpReplayer::SetupVideoStreams(
     std::vector<VideoReceiveStreamInterface::Config>* receive_stream_configs,
@@ -197,8 +203,15 @@ void RtpReplayer::ReplayPackets(
       RTC_LOG(LS_ERROR) << "Packet error, corrupt packets or incorrect setup?";
       break;
     }
+#ifdef WEBRTC_WEBKIT_BUILD
+    // Set the clock rate if zero - always 90K for video
+    if (received_packet.payload_type_frequency() == 0) {
+        received_packet.set_payload_type_frequency(kVideoPayloadTypeFrequency);
+    }
+#else
     // Set the clock rate - always 90K for video
     received_packet.set_payload_type_frequency(kVideoPayloadTypeFrequency);
+#endif
 
     call->Receiver()->DeliverRtpPacket(
         MediaType::VIDEO, std::move(received_packet),

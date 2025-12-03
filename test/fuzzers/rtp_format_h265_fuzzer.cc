@@ -11,33 +11,29 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "api/array_view.h"
-#include "modules/rtp_rtcp/source/rtp_format.h"
-#include "modules/rtp_rtcp/source/rtp_format_h264.h"
-#include "modules/video_coding/codecs/h264/include/h264_globals.h"
 #if WEBRTC_WEBKIT_BUILD
-#include "modules/rtp_rtcp/source/video_rtp_depacketizer_h264.h"
+
+#include "modules/rtp_rtcp/source/rtp_packetizer_h265.h"
+#include "modules/rtp_rtcp/source/video_rtp_depacketizer_h265.h"
 #include "rtc_base/checks.h"
-#endif
 #include "test/fuzzers/fuzz_data_helper.h"
-#include "test/fuzzers/utils/validate_rtp_packetizer.h"
 
 namespace webrtc {
 void FuzzOneInput(const uint8_t* data, size_t size) {
-  test::FuzzDataHelper fuzz_input(MakeArrayView(data, size));
+  test::FuzzDataHelper fuzz_input(webrtc::MakeArrayView(data, size));
 
-  RtpPacketizer::PayloadSizeLimits limits = ReadPayloadSizeLimits(fuzz_input);
+  RtpPacketizer::PayloadSizeLimits limits;
+  limits.max_payload_len = 1200;
+  // Read uint8_t to be sure reduction_lens are much smaller than
+  // max_payload_len and thus limits structure is valid.
+  limits.first_packet_reduction_len = fuzz_input.ReadOrDefaultValue<uint8_t>(0);
+  limits.last_packet_reduction_len = fuzz_input.ReadOrDefaultValue<uint8_t>(0);
+  limits.single_packet_reduction_len =
+      fuzz_input.ReadOrDefaultValue<uint8_t>(0);
 
-  const H264PacketizationMode kPacketizationModes[] = {
-      H264PacketizationMode::NonInterleaved,
-      H264PacketizationMode::SingleNalUnit};
-
-  H264PacketizationMode packetization_mode =
-      fuzz_input.SelectOneOf(kPacketizationModes);
-
-  // Main function under test: RtpPacketizerH264's constructor.
-  RtpPacketizerH264 packetizer(fuzz_input.ReadByteArray(fuzz_input.BytesLeft()),
-                               limits, packetization_mode);
+  // Main function under test: RtpPacketizerH265's constructor.
+  RtpPacketizerH265 packetizer(fuzz_input.ReadByteArray(fuzz_input.BytesLeft()),
+                               limits);
 
   size_t num_packets = packetizer.NumPackets();
   if (num_packets == 0) {
@@ -45,46 +41,47 @@ void FuzzOneInput(const uint8_t* data, size_t size) {
   }
   // When packetization was successful, validate NextPacket function too.
   // While at it, check that packets respect the payload size limits.
-#if WEBRTC_WEBKIT_BUILD
   // While at it, also depacketize the generated payloads.
-  VideoRtpDepacketizerH264 depacketizer;
-#endif
+  VideoRtpDepacketizerH265 depacketizer;
   RtpPacketToSend rtp_packet(nullptr);
   // Single packet.
   if (num_packets == 1) {
-    RTC_CHECK(packetizer.NextPacket(&rtp_packet));
+    bool result = packetizer.NextPacket(&rtp_packet);
+    if (!result)
+      return;
     RTC_CHECK_LE(rtp_packet.payload_size(),
-                 limits.max_payload_len - limits.single_packet_reduction_len);
-#if WEBRTC_WEBKIT_BUILD
+                 limits.max_payload_len - std::min(limits.single_packet_reduction_len, limits.first_packet_reduction_len));
     depacketizer.Parse(rtp_packet.PayloadBuffer());
-#endif
     return;
   }
   // First packet.
-  RTC_CHECK(packetizer.NextPacket(&rtp_packet));
+  bool result = packetizer.NextPacket(&rtp_packet);
+  if (!result)
+    return;
   RTC_CHECK_LE(rtp_packet.payload_size(),
                limits.max_payload_len - limits.first_packet_reduction_len);
-#if WEBRTC_WEBKIT_BUILD
   depacketizer.Parse(rtp_packet.PayloadBuffer());
-#endif
   // Middle packets.
   for (size_t i = 1; i < num_packets - 1; ++i) {
     rtp_packet.Clear();
-    RTC_CHECK(packetizer.NextPacket(&rtp_packet))
-        << "Failed to get packet#" << i;
+    bool result = packetizer.NextPacket(&rtp_packet);
+    if (!result)
+      return;
+
     RTC_CHECK_LE(rtp_packet.payload_size(), limits.max_payload_len)
         << "Packet #" << i << " exceeds it's limit";
-#if WEBRTC_WEBKIT_BUILD
     depacketizer.Parse(rtp_packet.PayloadBuffer());
-#endif
   }
   // Last packet.
   rtp_packet.Clear();
-  RTC_CHECK(packetizer.NextPacket(&rtp_packet));
+  result = packetizer.NextPacket(&rtp_packet);
+  if (!result)
+    return;
+
   RTC_CHECK_LE(rtp_packet.payload_size(),
                limits.max_payload_len - limits.last_packet_reduction_len);
-#if WEBRTC_WEBKIT_BUILD
   depacketizer.Parse(rtp_packet.PayloadBuffer());
-#endif
 }
 }  // namespace webrtc
+
+#endif // WEBRTC_WEBKIT_BUILD
