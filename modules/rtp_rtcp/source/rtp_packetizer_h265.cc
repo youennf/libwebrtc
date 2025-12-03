@@ -30,10 +30,12 @@ RtpPacketizerH265::RtpPacketizerH265(ArrayView<const uint8_t> payload,
                                      PayloadSizeLimits limits)
     : limits_(limits), num_packets_left_(0) {
   for (const auto& nalu : H264::FindNaluIndices(payload)) {
+#if WEBRTC_WEBKIT_BUILD
     if (!nalu.payload_size) {
       input_fragments_.clear();
       return;
     }
+#endif
     input_fragments_.push_back(
         payload.subview(nalu.payload_start_offset, nalu.payload_size));
   }
@@ -74,6 +76,12 @@ bool RtpPacketizerH265::GeneratePackets() {
       }
       ++i;
     } else {
+#if WEBRTC_WEBKIT_BUILD
+      RTC_DCHECK(fragment_len > 1);
+      if (fragment_len == 1) {
+        return false;
+      }
+#endif
       i = PacketizeAp(i);
     }
   }
@@ -214,7 +222,13 @@ bool RtpPacketizerH265::NextPacket(RtpPacketToSend* rtp_packet) {
     packets_.pop();
     input_fragments_.pop_front();
   } else if (packet.aggregated) {
+#if WEBRTC_WEBKIT_BUILD
+    if (!NextAggregatePacket(rtp_packet)) {
+        return false;
+    }
+#else
     NextAggregatePacket(rtp_packet);
+#endif
   } else {
     NextFragmentPacket(rtp_packet);
   }
@@ -223,7 +237,11 @@ bool RtpPacketizerH265::NextPacket(RtpPacketToSend* rtp_packet) {
   return true;
 }
 
+#if WEBRTC_WEBKIT_BUILD
+bool RtpPacketizerH265::NextAggregatePacket(RtpPacketToSend* rtp_packet) {
+#else
 void RtpPacketizerH265::NextAggregatePacket(RtpPacketToSend* rtp_packet) {
+#endif
   size_t payload_capacity = rtp_packet->FreeCapacity();
   RTC_CHECK_GE(payload_capacity, kH265PayloadHeaderSizeBytes);
   uint8_t* buffer = rtp_packet->AllocatePayload(payload_capacity);
@@ -251,6 +269,12 @@ void RtpPacketizerH265::NextAggregatePacket(RtpPacketToSend* rtp_packet) {
   while (packet->aggregated) {
     // Add NAL unit length field.
     ArrayView<const uint8_t> fragment = packet->source_fragment;
+#if WEBRTC_WEBKIT_BUILD
+    RTC_DCHECK(fragment.size() > 1);
+    if (fragment.size() == 1) {
+      return false;
+    }
+#endif
     uint8_t layer_id = ((fragment[0] & kH265LayerIDHMask) << 5) |
                        ((fragment[1] & kH265LayerIDLMask) >> 3);
     layer_id_min = std::min(layer_id_min, layer_id);
@@ -275,6 +299,9 @@ void RtpPacketizerH265::NextAggregatePacket(RtpPacketToSend* rtp_packet) {
   buffer[1] = (layer_id_min << 3) | temporal_id_min;
   RTC_CHECK(is_last_fragment);
   rtp_packet->SetPayloadSize(index);
+#if WEBRTC_WEBKIT_BUILD
+  return true;
+#endif
 }
 
 void RtpPacketizerH265::NextFragmentPacket(RtpPacketToSend* rtp_packet) {
