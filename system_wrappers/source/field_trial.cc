@@ -21,8 +21,10 @@
 #include "rtc_base/logging.h"
 #include "rtc_base/string_encode.h"
 
+#if !defined(WEBRTC_WEBKIT_BUILD)
 // Generated file.
 #include "experiments/registered_field_trials.h"  // IWYU pragma: keep
+#endif
 
 // Simple field trial implementation, which allows client to
 // specify desired flags in InitFieldTrialsFromString.
