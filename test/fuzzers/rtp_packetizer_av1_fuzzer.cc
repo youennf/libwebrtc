@@ -12,6 +12,7 @@
 
 #include "api/video/video_frame_type.h"
 #include "modules/rtp_rtcp/source/rtp_format.h"
+#include "modules/rtp_rtcp/source/rtp_packet_to_send.h"
 #include "modules/rtp_rtcp/source/rtp_packetizer_av1.h"
 #ifdef WEBRTC_WEBKIT_BUILD
 #include "modules/rtp_rtcp/source/video_rtp_depacketizer_av1.h"
