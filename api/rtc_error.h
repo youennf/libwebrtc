@@ -265,7 +265,10 @@ inline RTCError LogErrorImpl(RTCError error,
 //   return LOG_ERROR(RTCError(RTCErrorType::INVALID_STATE) << "Yikes");
 // }
 //
+
+#if !defined(LOG_ERROR) // WEBRTC_WEBKIT_BUILD
 #define LOG_ERROR(x) LogErrorImpl(x, LS_ERROR, __FILE__, __LINE__)
+#endif
 
 // RTCErrorOr<T> is the union of an RTCError object and a T object. RTCErrorOr
 // models the concept of an object that is either a usable value, or an error
