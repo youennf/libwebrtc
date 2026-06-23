@@ -123,6 +123,10 @@ class FuzzDataHelper {
 
   size_t size() const { return data_.size(); }
 
+#if WEBRTC_WEBKIT_BUILD
+    std::span<const uint8_t> span() const { return data_; }
+#endif
+
  private:
   std::span<const uint8_t> data_;
   size_t data_ix_ = 0;
