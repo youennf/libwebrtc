@@ -112,9 +112,6 @@ void FuzzOneInput(FuzzDataHelper fuzz_data) {
   test.RunNegotiateCycle(
       sdpType,
       fuzz_data.ReadString());
-
-  if (newData != data)
-      free(newData);
 #else
   test.RunNegotiateCycle(fuzz_data.ReadString());
 #endif

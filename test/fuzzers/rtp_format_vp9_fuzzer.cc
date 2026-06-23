@@ -31,8 +31,8 @@ void FuzzOneInput(FuzzDataHelper fuzz_data) {
 #if WEBRTC_WEBKIT_BUILD
   RTPVideoHeader video_header;
   if (int offset = VideoRtpDepacketizerVp9::ParseRtpPayload(
-        webrtc::MakeArrayView(&data[fuzz_input.BytesRead()], fuzz_input.BytesLeft()), &video_header)) {
-    (void)fuzz_input.ReadByteArray(offset);
+        fuzz_data.span(), &video_header)) {
+    (void)fuzz_data.ReadByteArray(offset);
     hdr_info = std::get<RTPVideoHeaderVP9>(video_header.video_type_header);
   } else {
 #endif
