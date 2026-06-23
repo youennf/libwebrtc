@@ -238,7 +238,11 @@ class LoggingConfig {
 
  private:
   LoggingSeverity min_severity_ = LS_INFO;
+#if !defined(NDEBUG) && !defined(WEBRTC_WEBKIT_BUILD)
   LoggingSeverity debug_severity_ = LS_INFO;
+#else
+  LoggingSeverity debug_severity_ = LS_NONE;
+#endif
   bool log_thread_ = false;
   bool log_timestamp_ = false;
   bool log_queue_name_ = false;
